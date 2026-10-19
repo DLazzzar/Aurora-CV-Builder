@@ -247,6 +247,7 @@ textarea.inp{resize:vertical;min-height:62px;line-height:1.45}
 .cv .hd{font-family:var(--c-hfont);font-weight:var(--c-wh)}
 .cv .ic{width:1em;height:1em;flex:none;display:inline-block;vertical-align:-.14em}
 .cv-bg{position:absolute;inset:0;pointer-events:none;background:var(--c-grad)}
+.cv .cv-bg.baked{background-size:100% 100%!important;background-repeat:no-repeat;-webkit-mask-image:none!important;mask-image:none!important;height:auto!important;bottom:0!important}
 .cv-inner{position:relative;padding:var(--c-pad-y) var(--c-pad-x) 28pt}
 .cv .avatar{overflow:hidden;position:relative;background:var(--c-soft);flex:none;display:grid;place-items:center;color:var(--c-muted);font-weight:600;border-radius:var(--c-pr)}
 .cv .avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
@@ -347,30 +348,31 @@ textarea.inp{resize:vertical;min-height:62px;line-height:1.45}
 /* Glass */
 .t-glass{letter-spacing:-.01em}
 .t-glass .cv-inner{padding:var(--c-pad-y) var(--c-pad-x) 24pt}
-.t-glass .glass{position:relative;border-radius:20pt;background:linear-gradient(155deg,rgba(255,255,255,calc(var(--c-glass) + .18)) 0%,rgba(255,255,255,var(--c-glass)) 45%,rgba(255,255,255,calc(var(--c-glass) - .12)) 100%);border:.8pt solid rgba(255,255,255,.85);box-shadow:inset 0 1.2pt 0 rgba(255,255,255,.95),inset 0 -1pt 1pt rgba(255,255,255,.35),inset 1pt 0 0 rgba(255,255,255,.35),0 14pt 30pt -12pt rgba(38,48,110,.28),0 1pt 2.5pt rgba(38,48,110,.08);overflow:hidden}
-.t-glass .glass::before{content:"";position:absolute;inset:0 0 auto 0;height:58%;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0));pointer-events:none}
-.t-glass .glass::after{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(130% 70% at 0% 0%,rgba(255,255,255,.55),transparent 42%),radial-gradient(90% 60% at 100% 100%,rgba(255,255,255,.32),transparent 55%);pointer-events:none}
+.t-glass .glass{position:relative;border-radius:20pt;background:rgba(255,255,255,calc(var(--c-glass) + .12));border:.8pt solid rgba(255,255,255,.95);outline:.6pt solid rgba(38,48,110,.07)}
+.t-glass.glass-art .glass{background:transparent;outline:none;border:.8pt solid rgba(255,255,255,.7)}
+.t-glass.glass-art .g-chips a{background:transparent!important;border-color:rgba(255,255,255,.75)!important}
+.t-glass.glass-art .cv-bg.baked{position:absolute!important;background-size:100% auto!important;background-position:0 0!important}
 .t-glass .glass>*{position:relative;z-index:1}
 .t-glass .g-card{break-inside:avoid}
 .t-glass .g-head{padding:14pt 16pt 12pt}
 .t-glass .g-top{display:flex;align-items:center;gap:16pt}
 .t-glass .g-top.right{flex-direction:row-reverse}
-.t-glass .g-top .avatar{box-shadow:0 0 0 3pt rgba(255,255,255,.75),0 8pt 18pt -6pt rgba(38,48,110,.4)}
+.t-glass .g-top .avatar{box-shadow:0 0 0 3pt rgba(255,255,255,.85)}
 .t-glass h1{font-size:calc(var(--c-name)*1.55);line-height:1.02;letter-spacing:-.035em}
 .t-glass .g-role{font-size:calc(var(--c-name)*.72);font-weight:var(--c-wh);color:var(--c-accent);margin-top:4pt;letter-spacing:-.015em}
 .t-glass .g-sum{font-size:calc(var(--c-sum)*.8);line-height:1.4;color:var(--c-muted);margin-top:6pt}
 .t-glass .g-sum b{color:var(--c-text)}
 .t-glass .g-chips{display:flex;flex-wrap:wrap;gap:5pt;margin-top:11pt}
-.t-glass .g-chips a{display:inline-flex;align-items:center;gap:4pt;padding:3pt 8.5pt;border-radius:999px;font-size:.88em;background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,.55));border:.7pt solid rgba(255,255,255,.95);box-shadow:inset 0 .8pt 0 #fff,0 2pt 6pt -2pt rgba(38,48,110,.22)}
+.t-glass .g-chips a{display:inline-flex;align-items:center;gap:4pt;padding:3pt 8.5pt;border-radius:999px;font-size:.88em;background:rgba(255,255,255,.82);border:.7pt solid rgba(38,48,110,.08)}
 .t-glass .g-chips .ic{color:var(--c-accent);width:1.05em;height:1.05em}
 .t-glass .g-card{margin-top:var(--c-gap);padding:11pt 15pt 12pt}
 .t-glass .g-h{display:flex;align-items:center;gap:8pt;font-size:1.18em;margin-bottom:9pt;letter-spacing:-.02em}
-.t-glass .g-ic{width:20pt;height:20pt;border-radius:50%;display:grid;place-items:center;flex:none;color:#fff;background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--c-accent) 55%,#fff),var(--c-accent) 70%);box-shadow:inset 0 1pt 1pt rgba(255,255,255,.6),0 3pt 7pt -2pt color-mix(in srgb,var(--c-accent) 70%,transparent)}
+.t-glass .g-ic{width:20pt;height:20pt;border-radius:50%;display:grid;place-items:center;flex:none;color:#fff;background:var(--c-accent);border:.8pt solid rgba(255,255,255,.55)}
 .t-glass .g-ic .ic{width:11pt;height:11pt}
-.t-glass .job+.job{margin-top:11pt;padding-top:11pt;border-top:.7pt solid rgba(255,255,255,.9);box-shadow:0 -.6pt 0 rgba(38,48,110,.06)}
+.t-glass .job+.job{margin-top:11pt;padding-top:11pt;border-top:.7pt solid rgba(255,255,255,.85)}
 .t-glass .jh{display:flex;justify-content:space-between;gap:12pt;align-items:baseline}
 .t-glass .jh h3{font-size:1.08em}
-.t-glass .jh .dates{font-size:.86em;color:var(--c-muted);white-space:nowrap;padding:1pt 7pt;border-radius:999px;background:rgba(255,255,255,.6);border:.6pt solid rgba(255,255,255,.95)}
+.t-glass .jh .dates{font-size:.86em;color:var(--c-muted);white-space:nowrap;padding:1pt 7pt;border-radius:999px;background:rgba(255,255,255,.55);border:.6pt solid rgba(255,255,255,.9)}
 .t-glass .meta{font-size:.9em;color:var(--c-muted);margin-top:1pt}
 .t-glass .grp{font-weight:var(--c-wb);margin-top:6pt;font-size:.95em}
 .t-glass ul,.t-glass ol{margin-top:3pt;padding-left:14pt}
@@ -381,6 +383,8 @@ textarea.inp{resize:vertical;min-height:62px;line-height:1.45}
 .t-glass .skl{display:grid;grid-template-columns:max-content 1fr;gap:4pt 12pt}
 .t-glass .pair{display:flex;gap:var(--c-gap)}
 .t-glass .pair>.g-card{flex:1 1 0;min-width:0}
+/* Glass: the frosted panels, their shadows and light rims are painted into one background image
+   (see glassArt), so screen and PDF look the same and the PDF stays fast to open. */
 
 /* Simple ATS */
 .t-ats{line-height:1.32}
@@ -605,7 +609,7 @@ const TEMPLATES={
  aurora:{name:'Aurora',note:'Your main design: label column and a soft gradient.',ats:8,photo:true,design:TPL({})},
  side:{name:'Aurora Sidebar',note:'Same look with a left sidebar for contact, skills and languages.',ats:6,photo:true,sidebar:true,design:TPL({muted:'#545770',accent:'#3a3f8f',divider:'#20213e22',size:9.3,sum:13,photo:90,label:190,gap:14,padX:26,padY:30,contactCols:1})},
  spot:{name:'Aurora Spotlight',note:'Gradient header band, contact chips, single column.',ats:9,photo:true,design:TPL({text:'#1f2238',muted:'#53566b',accent:'#3d3a8c',divider:'#1f22382a',size:9.8,sum:13,photo:92,gap:18,padX:36,padY:34,grad:{base:'#ffffff',stops:[{color:'#ffd2b8',x:0,y:30,size:65,opacity:.75},{color:'#c4ecdd',x:45,y:0,size:55,opacity:.7},{color:'#d4ccff',x:100,y:35,size:70,opacity:.85}]}})},
- glass:{name:'Glass',note:'Frosted glass panels with light rims over a colourful background.',ats:7,photo:true,design:TPL({font:'inter',wn:700,wh:600,wb:600,track:-.01,text:'#1d1d1f',muted:'#56565e',accent:'#0a6cff',divider:'#0000001a',size:9.3,name:18,sum:13,photo:74,gap:8,padX:22,padY:18,glass:.5,grad:GRAD_PRESETS.Tahoe})},
+ glass:{name:'Glass',note:'Frosted glass panels with light rims over a colourful background.',ats:7,photo:true,design:TPL({font:'inter',wn:700,wh:600,wb:600,track:-.01,text:'#1d1d1f',muted:'#56565e',accent:'#0a6cff',divider:'#0000001a',size:9.3,name:18,sum:13,photo:74,gap:8,padX:22,padY:18,glass:.34,grad:GRAD_PRESETS.Tahoe})},
  classic:{name:'Classic',note:'Serif name, spaced capital headings and hairline rules.',ats:10,photo:false,design:TPL({font:'arial',hfont:'dejavu',wn:400,wh:700,wb:700,track:0,text:'#222222',muted:'#5c5c5c',accent:'#2b4a8b',divider:'#c9c9c9',size:9.3,name:25,sum:10,photo:0,photoPos:'none',gap:13,padX:62,padY:32,showIcons:false,gradOn:false,grad:GRAD_PRESETS.None})},
  banner:{name:'Garamond Banner',note:'Garamond type, grey title bands, diamond markers and dotted leaders.',ats:9,photo:false,design:TPL({font:'garamond',wn:700,wh:600,wb:700,track:0,text:'#1a1a1a',muted:'#333333',accent:'#1a1a1a',divider:'#1a1a1a',band:'#ececec',size:9.8,name:21,sum:10,photo:0,photoPos:'none',gap:12,padX:42,padY:30,showIcons:false,gradOn:false,grad:GRAD_PRESETS.None})},
  details:{name:'Details',note:'Square photo, icon headings and a right-hand Details column.',ats:6,photo:true,sidebar:true,design:TPL({font:'sourcesans',wn:600,wh:600,wb:700,track:0,text:'#1f1f1f',muted:'#a3a3a3',accent:'#1f1f1f',divider:'#e5e5e5',size:9.6,name:23,sum:10,photo:44,photoShape:'rounded',label:132,gap:16,padX:54,padY:34,gradOn:false,grad:GRAD_PRESETS.None})},
@@ -824,15 +828,87 @@ function renderCV(T=S.template,d=D(T),data=null){
   if(sum)h+=`<h2 class="hd">${esc(p.summaryLabel||'Summary')}</h2><div class="rt">${sum}</div>`;
   vs.forEach(s=>{h+=`<h2 class="hd">${esc(s.label)}</h2>${body(s,d,T)}`});
  }
- return `<div class="cv t-${T}" style="${esc(vars(d))}"><div class="cv-bg"></div><div class="cv-inner">${h}</div></div>`;
+ const gArt=d.__bake&&T==='glass'&&LAST_GLASS;const bk=d.__bake?(gArt?LAST_GLASS:bakedBg(T,d)):'';
+ return `<div class="cv t-${T}${gArt?' glass-art':''}" style="${esc(vars(d))}">${bk?`<div class="cv-bg baked" style="background-image:url(${bk})"></div>`:'<div class="cv-bg"></div>'}<div class="cv-inner">${h}</div></div>`;
 }
+
+
+/* print background: bake the soft gradient into one image. CSS gradients with transparency
+   become full-page soft masks in a PDF, which makes Acrobat and browsers slow to draw the page. */
+const bakeCache={};
+function bakedBg(T,d){
+ if(!d.gradOn||!d.grad||!d.grad.stops.length||['ats','classic','banner','details'].includes(T))return '';
+ const W=900,H=1273,pt=W/595.28;const key=JSON.stringify([T,d.grad,d.padY,d.photo]);if(bakeCache[key])return bakeCache[key];
+ const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
+ const L=document.createElement('canvas');L.width=W;L.height=H;const l=L.getContext('2d');
+ let bh=H;if(T==='spot')bh=Math.min(H,Math.round((d.padY+(d.photo||80)+70)*pt));
+ const stops=[...d.grad.stops].reverse();
+ for(const s of stops){const cx=s.x/100*W,cy=s.y/100*bh;const r=Math.max(...[[0,0],[W,0],[0,bh],[W,bh]].map(([x,y])=>Math.hypot(x-cx,y-cy)));
+  const gr=l.createRadialGradient(cx,cy,0,cx,cy,Math.max(1,r*s.size/100));gr.addColorStop(0,hexA(s.color,s.opacity));gr.addColorStop(1,hexA(s.color,0));l.fillStyle=gr;l.fillRect(0,0,W,bh)}
+ if(T==='spot'){l.globalCompositeOperation='destination-in';const m=l.createLinearGradient(0,0,0,bh);m.addColorStop(0,'#000');m.addColorStop(.55,'#000');m.addColorStop(1,'rgba(0,0,0,0)');l.fillStyle=m;l.fillRect(0,0,W,bh);l.globalCompositeOperation='source-over'}
+ g.fillStyle=d.grad.base||'#ffffff';g.fillRect(0,0,W,H);g.drawImage(L,0,0);
+ return bakeCache[key]=c.toDataURL('image/jpeg',.9);
+}
+
+
+/* Glass: paint a real frosted-glass layer. The wallpaper is blurred, tinted and lit inside each panel,
+   with soft drop shadows and light rims, all into one image behind the text. */
+let LAST_GLASS='';const wpCache={};
+function relRect(el,root){let x=0,y=0,e=el;while(e&&e!==root){x+=e.offsetLeft;y+=e.offsetTop;e=e.offsetParent}return {x,y,w:el.offsetWidth,h:el.offsetHeight}}
+function rr(g,x,y,w,h,r){r=Math.min(r,h/2,w/2);g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()}
+function wallpaper(d,W,H,s){
+ const key=JSON.stringify([d.grad,W,H,s]);if(wpCache[key])return wpCache[key];
+ const PH=1123,cw=Math.round(W*s),ch=Math.round(H*s);
+ const wp=document.createElement('canvas');wp.width=cw;wp.height=ch;const g=wp.getContext('2d');
+ g.fillStyle=d.grad.base||'#eef1f8';g.fillRect(0,0,cw,ch);
+ const st=d.grad.stops.length?d.grad.stops:GRAD_PRESETS.Tahoe.stops;
+ for(let p=0;p*PH<H;p++){
+  const oy=p*PH*s;
+  st.forEach((o,i)=>{const cx=o.x/100*cw,cy=oy+o.y/100*PH*s,r=(.18+o.size/100*.42)*cw;
+   const gr=g.createRadialGradient(cx,cy,0,cx,cy,r);gr.addColorStop(0,hexA(o.color,Math.min(1,o.opacity*1.05)));gr.addColorStop(.62,hexA(o.color,o.opacity*.8));gr.addColorStop(1,hexA(o.color,0));
+   g.fillStyle=gr;g.beginPath();g.arc(cx,cy,r,0,Math.PI*2);g.fill()});
+  // flowing ribbons give the glass something to bend and blur
+  st.slice(0,3).forEach((o,i)=>{const y0=oy+(.18+i*.3)*PH*s;g.save();g.globalAlpha=.32;g.fillStyle=o.color;g.beginPath();g.moveTo(-20,y0);
+   g.bezierCurveTo(cw*.3,y0-PH*s*.16,cw*.62,y0+PH*s*.2,cw+20,y0-PH*s*.05);g.lineTo(cw+20,y0+PH*s*.06);g.bezierCurveTo(cw*.62,y0+PH*s*.29,cw*.3,y0-PH*s*.06,-20,y0+PH*s*.1);g.closePath();g.fill();g.restore()});
+ }
+ // blurred copy: downscale/upscale works in every browser
+ const bl=document.createElement('canvas');bl.width=cw;bl.height=ch;const b=bl.getContext('2d');
+ const sm=document.createElement('canvas');sm.width=Math.max(1,Math.round(cw/14));sm.height=Math.max(1,Math.round(ch/14));const m=sm.getContext('2d');m.imageSmoothingQuality='high';m.drawImage(wp,0,0,sm.width,sm.height);
+ const sm2=document.createElement('canvas');sm2.width=Math.round(cw/5);sm2.height=Math.round(ch/5);const m2=sm2.getContext('2d');m2.imageSmoothingQuality='high';m2.drawImage(sm,0,0,sm2.width,sm2.height);
+ b.imageSmoothingQuality='high';b.drawImage(sm2,0,0,cw,ch);
+ b.globalCompositeOperation='saturation';b.fillStyle='hsl(0,60%,50%)';b.globalAlpha=.25;b.fillRect(0,0,cw,ch);b.globalAlpha=1;b.globalCompositeOperation='source-over';
+ return wpCache[key]={wp,bl};
+}
+function glassArt(cv,d){
+ const W=cv.offsetWidth,H=Math.max(cv.offsetHeight,1123),s=1.5;if(!W)return '';
+ const panels=[...cv.querySelectorAll('.glass,.g-chips a')].map(el=>Object.assign(relRect(el,cv),{r:parseFloat(getComputedStyle(el).borderTopLeftRadius)||12,chip:el.tagName==='A'}));
+ const {wp,bl}=wallpaper(d,W,H,s);
+ const c=document.createElement('canvas');c.width=wp.width;c.height=wp.height;const g=c.getContext('2d');g.drawImage(wp,0,0);
+ const tint=Math.max(.12,Math.min(.8,d.glass));
+ for(const p of panels){
+  const x=p.x*s,y=p.y*s,w=p.w*s,h=p.h*s,r=p.r*s;
+  g.save();g.shadowColor=p.chip?'rgba(30,40,100,.16)':'rgba(30,40,100,.20)';g.shadowBlur=(p.chip?8:34)*s;g.shadowOffsetY=(p.chip?2:14)*s;rr(g,x,y,w,h,r);g.fillStyle='rgba(255,255,255,1)';g.fill();g.restore();
+  g.save();rr(g,x,y,w,h,r);g.clip();
+  g.drawImage(bl,0,0);                                   // frosted: what is behind, blurred
+  g.fillStyle=`rgba(255,255,255,${p.chip?tint+.18:tint})`;g.fillRect(x,y,w,h);   // milky tint
+  const sh=g.createLinearGradient(0,y,0,y+h*.55);sh.addColorStop(0,'rgba(255,255,255,.38)');sh.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=sh;g.fillRect(x,y,w,h); // top sheen
+  const gl=g.createRadialGradient(x,y,0,x,y,Math.max(w,h)*.7);gl.addColorStop(0,'rgba(255,255,255,.28)');gl.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gl;g.fillRect(x,y,w,h); // corner glint
+  const bot=g.createLinearGradient(0,y+h*.7,0,y+h);bot.addColorStop(0,'rgba(255,255,255,0)');bot.addColorStop(1,'rgba(255,255,255,.16)');g.fillStyle=bot;g.fillRect(x,y,w,h); // light caught at the lower edge
+  g.restore();
+  g.save();rr(g,x+.75*s,y+.75*s,w-1.5*s,h-1.5*s,Math.max(0,r-.75*s));const rim=g.createLinearGradient(x,y,x+w*.6,y+h);rim.addColorStop(0,'rgba(255,255,255,.95)');rim.addColorStop(.45,'rgba(255,255,255,.35)');rim.addColorStop(1,'rgba(255,255,255,.7)');g.strokeStyle=rim;g.lineWidth=1.5*s;g.stroke();g.restore(); // light rim
+ }
+ return c.toDataURL('image/jpeg',.9);
+}
+function applyGlass(cv,d){if(!cv||!cv.classList.contains('t-glass'))return '';const url=glassArt(cv,d);if(!url)return '';const bg=cv.querySelector('.cv-bg');bg.classList.add('baked');bg.style.backgroundImage=`url(${url})`;cv.classList.add('glass-art');return url}
+const glassSoon=debounce(()=>refreshGlass(),160);
+function refreshGlass(){if(S.template!=='glass')return;const cv=$('#sheet .cv');LAST_GLASS=applyGlass(cv,D())||LAST_GLASS;const pr=$('#printRoot .cv');if(pr&&LAST_GLASS&&!isBlank(S)){pr.classList.add('glass-art');const b=pr.querySelector('.cv-bg');b.classList.add('baked');b.style.backgroundImage=`url(${LAST_GLASS})`}}
 
 /* ---------- preview ---------- */
 let zoomManual=null;
 function renderPreview(){
  const d=D();ensureFont(d.font);if(d.hfont)ensureFont(d.hfont);
- const blank=isBlank(S);$('#sheet').innerHTML=renderCV(S.template,d,blank?EXAMPLE:null);$('#printRoot').innerHTML=blank?'':renderCV();
- $('#tplName').innerHTML=`${ui('layout-template')}${esc(TEMPLATES[S.template].name)}<small>Change</small>`;$('#exampleNote').hidden=!blank;
+ const blank=isBlank(S);$('#sheet').innerHTML=renderCV(S.template,d,blank?EXAMPLE:null);$('#printRoot').innerHTML=blank?'':renderCV(S.template,Object.assign({},d,{__bake:true}));
+ $('#tplName').innerHTML=`${ui('layout-template')}${esc(TEMPLATES[S.template].name)}<small>Change</small>`;$('#exampleNote').hidden=!blank;if(S.template==='glass'){if(LAST_GLASS){[$('#sheet .cv'),blank?null:$('#printRoot .cv')].forEach(cv=>{if(!cv)return;cv.classList.add('glass-art');const b=cv.querySelector('.cv-bg');b.classList.add('baked');b.style.backgroundImage=`url(${LAST_GLASS})`})}glassSoon()}
  fitZoom();markBreaks();updateScore();persist();
 }
 function fitZoom(){
@@ -876,17 +952,17 @@ function paneTemplates(){
  return `<div class="hint" style="margin-bottom:12px">Pick a template. Previews show example content until you add your own. Each template keeps its own design settings.</div><div class="tgrid">${TORDER.map(k=>{const t=TEMPLATES[k];
   return `<button class="tcard" data-tpl="${k}" aria-pressed="${k===S.template}"><div class="tthumb"><div class="inner">${renderCV(k,D(k),isBlank(S)?EXAMPLE:null)}</div></div><b>${t.name}</b><span class="note">${t.note}</span><span class="badges"><span class="badge ${t.photo?'':'no'}">${t.photo?'Photo supported':'Photo not supported on this template'}</span><span class="badge">ATS ${t.ats>=9?'high':t.ats>=7?'good':'fair'}</span></span></button>`}).join('')}</div>`;
 }
-function fitThumbs(){$$('.tthumb').forEach(b=>{const inner=b.firstElementChild;const cv=inner.firstElementChild;if(!cv)return;inner.style.transform=`scale(${b.clientWidth/cv.offsetWidth})`})}
+function fitThumbs(){$$('.tthumb').forEach(b=>{const inner=b.firstElementChild;const cv=inner.firstElementChild;if(!cv)return;inner.style.transform=`scale(${b.clientWidth/cv.offsetWidth})`;if(cv.classList.contains('t-glass')&&!cv.classList.contains('glass-art'))applyGlass(cv,D('glass'))})}
 function paneContent(){
  const p=S.profile;
  let h=`<details class="group" data-k="profile" open><summary>${ui('user')}Profile<span class="chev">${ui('chevron-right')}</span></summary><div class="gbody">
-  ${inp('profile.name','Full name',p.name)}${inp('profile.title','Headline / job title',p.title)}
-  ${inp('profile.summaryLabel','Summary heading (used by Classic, Banner, Details, Simple ATS)',p.summaryLabel)}
-  ${rich('profile.summary','Summary',p.summary)}
   <div class="field"><span>Profile picture</span><div class="photo-row"><div class="photo-thumb">${p.photo.src?`<img src="${p.photo.src}" alt="" style="object-position:${p.photo.x}% ${p.photo.y}%;transform:scale(${p.photo.zoom});transform-origin:${p.photo.x}% ${p.photo.y}%">`:''}</div>
    <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" data-act="photo">${p.photo.src?'Replace':'Upload'} photo</button>${p.photo.src?`<button class="btn sm ghost" data-act="photoRemove">Remove</button>`:''}</div></div>
    ${TEMPLATES[S.template].photo?'':`<span class="hint">Photo not supported on the ${TEMPLATES[S.template].name} template. It still shows on the others.</span>`}</div>
   ${p.photo.src?`${rng('profile.photo.zoom','Zoom',p.photo.zoom,1,3,.05,'×')}${rng('profile.photo.x','Horizontal position',p.photo.x,0,100,1,'%')}${rng('profile.photo.y','Vertical position',p.photo.y,0,100,1,'%')}`:''}
+  ${inp('profile.name','Full name',p.name)}${inp('profile.title','Headline / job title',p.title)}
+  ${inp('profile.summaryLabel','Summary heading (used by Classic, Banner, Details, Simple ATS)',p.summaryLabel)}
+  ${rich('profile.summary','Summary',p.summary)}
  </div></details>`;
  h+=`<details class="group" data-k="contact" open><summary>${ui('mail')}Contact, links &amp; details<span class="chev">${ui('chevron-right')}</span></summary><div class="gbody">
   <div class="row"><div class="fit">${iconSelect('profile.contactIcon',p.contactIcon)}</div>${inp('profile.contactLabel','Section label',p.contactLabel)}</div>
@@ -1415,7 +1491,7 @@ function ensureFont(k,full=true){
    }
   }
   await Promise.all(tasks);
-  if(typeof fitZoom==='function'){fitZoom();markBreaks()}
+  if(typeof fitZoom==='function'){fitZoom();markBreaks();refreshGlass()}
  })();
  st.p=job;return job;
 }
@@ -1430,7 +1506,7 @@ async function printDoc(){
   if(localFonts){for(const [w,i] of FONT_MANIFEST[k]){const b=fontBuf[`${k}-${w}${i?'i':''}`];if(b)faces+=`@font-face{font-family:"CVX-${k}";font-weight:${w};font-style:${i?'italic':'normal'};src:url(data:font/ttf;base64,${b64(b)}) format("truetype")}`}}
   else{const [pkg,ver,list]=FONT_SOURCES[k];for(const [w,i] of list)for(const [sub,ur] of [['latin',UR_LATIN],['latin-ext',UR_EXT]])faces+=`@font-face{font-family:"CVX-${k}";font-weight:${w};font-style:${i?'italic':'normal'};unicode-range:${ur};src:url(https://cdn.jsdelivr.net/npm/@fontsource/${pkg}@${ver}/files/${pkg}-${sub}-${w}-${i?'italic':'normal'}.woff2) format("woff2")}`}
  }
- return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(S.profile.name)} - CV</title><style>${faces}html,body{margin:0;background:#fff}${$('#cv-css').textContent}</style></head><body>${renderCV()}<script>document.fonts&&document.fonts.ready.then(function(){setTimeout(function(){window.print()},400)})<\/script></body></html>`;
+ return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(S.profile.name)} - CV</title><style>${faces}html,body{margin:0;background:#fff}${$('#cv-css').textContent}</style></head><body>${renderCV(S.template,Object.assign({},D(),{__bake:true}))}<script>document.fonts&&document.fonts.ready.then(function(){setTimeout(function(){window.print()},400)})<\/script></body></html>`;
 }
 function printSettings(pages){
  const rows=[['Destination','Save as PDF','Not "Microsoft Print to PDF", which can save text as images.'],['Pages','All',''],['Pages per sheet','1',''],
