@@ -1286,6 +1286,52 @@ $('#fileImport').addEventListener('change',e=>{const f=e.target.files[0];e.targe
 
 function loadScript(srcs){return new Promise((res,rej)=>{const tryOne=i=>{if(i>=srcs.length)return rej(new Error('load'));const s=document.createElement('script');s.src=srcs[i];s.onload=res;s.onerror=()=>{s.remove();tryOne(i+1)};document.head.appendChild(s)};tryOne(0)})}
 let IMPORT_LINKS=[],IMPORT_PHOTO='',IMPORT_BOLD=new Set();
+
+/* ---------- section headings: what a line means ---------- */
+// Order matters: the first match wins ("Volunteer Experience" is a list, "Career Summary" is a summary).
+const SECT=[
+ ['contact',/\b(driving licen[cs]e|driver'?s licen[cs]e|voza[čc]ka dozvola)\b/],
+ ['languages',/\b(languages?|mother tongues?|native tongue|jezici|jezik|strani jezici|poznavanje jezika)\b/],
+ ['list',/\b(projects?|achievements?|accomplishments?|awards?|honou?rs|volunteer(ing)?|interests?|hobbies|references?|publications?|activities|additional information|other information|memberships?|affiliations?|conferences|projekti|nagrade|hobiji|interesovanja|preporuke|volontiranje|dodatne informacije|ostalo|aktivnosti|publikacije)\b/],
+ ['summary',/\b(summary|profile|about me|about|objective|personal statement|introduction|overview|career goals?|o meni|profil|rezime|cilj|biografija|ukratko)\b/],
+ ['contact',/\b(contacts?|contact info(rmation)?|contact details|personal info(rmation)?|personal details|personal data|details|kontakt|kontakt podaci|li[čc]ni podaci|li[čc]ne informacije)\b/],
+ ['education',/\b(education(al)?|academic|qualifications?|training|studies|schooling|certifications?|certificates?|licen[cs]es|courses|obrazovanje|[šs]kolovanje|kursevi|sertifikati|edukacija|studije)\b/],
+ ['experience',/\b(experience|employment|work history|career|professional background|work background|positions?|internships?|radno iskustvo|iskustvo|zaposlenje|radna istorija|karijera)\b/],
+ ['skills',/\b(skills?|competenc(ies|e|y)|expertise|proficienc(ies|y)|technolog(ies|y)|tech stack|tools|abilities|strengths|know-?how|ve[šs]tine|vje[šs]tine|znanja|kompetencije|tehnologije|alati)\b/]
+];
+// Words allowed around the keyword in a heading ("Key Skills", "Work Experience & Internships")
+const HFILL=/\b(and|i|of|my|key|core|main|other|additional|relevant|selected|professional|personal|technical|work|the|a|digital|computer|soft|hard|it|areas?|area|background|history|spoken|foreign|detail|details|info|information|licen[cs]es|training|radno|stručne|strucne|lične|licne|ostale|i)\b/g;
+const HWORDS=['professional','personal','technical','contact','information','info','details','summary','profile','about','me','objective','statement','work','experience','employment','history','career','education','and','training','certifications','certification','certificates','licenses','skills','tools','core','key','competencies','expertise','languages','language','projects','achievements','awards','volunteering','volunteer','interests','hobbies','references','publications','courses','qualifications','academic','background','additional','other','tech','stack','strengths','activities','overview','introduction','memberships','internships','o','meni','radno','iskustvo','obrazovanje','vestine','jezici','kontakt'];
+function despace(core){
+ // "W O R K E X P E R I E N C E" -> "WORK EXPERIENCE" (dictionary split), or the letters joined
+ const sqAll=core.replace(/\s+/g,'');if(/[^\p{L}]/u.test(sqAll))return sqAll.split(/([^\p{L}]+)/u).filter(Boolean).map(x=>/\p{L}/u.test(x)?despace(x.split('').join(' ')):' '+x+' ').join('').replace(/\s+/g,' ').trim();
+ const sq=sqAll.toLowerCase();const n=sq.length;const best=new Array(n+1).fill(null);best[0]=[];
+ for(let i=0;i<n;i++){if(!best[i])continue;for(const w of HWORDS){if(sq.startsWith(w,i)&&(!best[i+w.length]||best[i+w.length].length>best[i].length+1))best[i+w.length]=best[i].concat(w)}}
+ const caps=core===core.toUpperCase();const words=best[n]||[sq];
+ return words.map(w=>caps?w.toUpperCase():w).join(' ');
+}
+const isSpacedText=t=>{const tk=t.trim().split(/\s+/);return tk.length>=4&&tk.filter(x=>x.length===1).length>=tk.length*.7};
+function headInfo(t){
+ t=String(t||'').trim();if(!t||/^[•●▪◦*·]/.test(t))return null;
+ let core=t.replace(/^[^\p{L}]+/u,'').replace(/[\s:：\-–—.•|]+$/,'').trim();
+ if(!core||core.length>48)return null;
+ if(isSpacedText(core))core=despace(core);
+ if(/\d|[,;!?@]|\w\.\w|https?:/.test(core))return null;
+ const words=core.split(/\s+/);if(words.length>5)return null;
+ if(!/^[\p{Lu}]/u.test(core))return null;
+ const low=core.toLowerCase().replace(/\(s\)/g,'s').replace(/[’']/g,"'");
+ for(const [type,re] of SECT){
+  if(!re.test(low))continue;
+  const rest=low.replace(re,' ').replace(HFILL,' ').replace(/[^\p{L}]+/gu,' ').trim();
+  const extra=rest?rest.split(' ').length:0;
+  if(extra>1)continue;
+  return {type,label:core,exact:extra===0};
+ }
+ return null;
+}
+const lineText=l=>typeof l==='string'?l:l.t;
+
+/* ---------- PDF: text lines with size/bold, in reading order (handles two-column layouts) ---------- */
 async function pdfLines(buf){
  if(!window.pdfjsLib){
   await loadScript(['https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js','https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js']);
@@ -1294,14 +1340,76 @@ async function pdfLines(buf){
  }
  const doc=await pdfjsLib.getDocument({data:buf,isEvalSupported:false}).promise;const out=[];IMPORT_LINKS=[];IMPORT_PHOTO='';IMPORT_BOLD=new Set();
  for(let p=1;p<=doc.numPages;p++){
-  const page=await doc.getPage(p);try{await page.getOperatorList()}catch(_){}const tc=await page.getTextContent();const rows=[];
+  const page=await doc.getPage(p);try{await page.getOperatorList()}catch(_){}const tc=await page.getTextContent();const W=page.getViewport({scale:1}).width;
   const boldF={};const isBold=fn=>{if(fn in boldF)return boldF[fn];let b=false;try{const f=page.commonObjs.get(fn);b=!!(f&&(f.bold||/bold|semibold|demi|black|heavy/i.test(f.name||'')))}catch(_){}try{if(!b)b=/bold/i.test(tc.styles[fn]?.fontFamily||'')}catch(_){}return boldF[fn]=b};
   try{(await page.getAnnotations()).forEach(an=>{const u=an.url||an.unsafeUrl;if(u)IMPORT_LINKS.push(u)})}catch(_){}
   if(p===1&&!IMPORT_PHOTO){try{IMPORT_PHOTO=await pdfPhoto(page)}catch(_){}}
-  tc.items.forEach(it=>{if(!it.str.trim())return;const y=it.transform[5],x=it.transform[4],h=it.height||Math.abs(it.transform[3]);let r=rows.find(r=>Math.abs(r.y-y)<Math.max(2,h*.45));if(!r){r={y,h,items:[]};rows.push(r)}r.items.push({x,s:it.str,w:it.width,h,b:isBold(it.fontName)})});
-  rows.sort((a,b)=>b.y-a.y).forEach(r=>{r.items.sort((a,b)=>a.x-b.x);{const all=r.items.map(i=>i.s).join(' ').replace(/\s+/g,' ').trim();let run=[];const flush=()=>{const t=run.join(' ').replace(/\s+/g,' ').replace(/^[\s•·-]+|[\s:,]+$/g,'').trim();if(t.length>=2&&t!==all.replace(/[\s:]+$/,''))IMPORT_BOLD.add(t);run=[]};r.items.forEach(i=>{if(i.b)run.push(i.s);else flush()});flush()}let line='',end=null;const fh=r.h||8;r.items.forEach(i=>{const gap=end==null?0:i.x-end;if(end!=null&&gap>fh*2.5)line+='   ';else if(end!=null&&gap>Math.max(.5,fh*.06)&&!line.endsWith(' ')&&!i.s.startsWith(' '))line+=' ';line+=i.s;end=i.x+i.w});line.split(/\s{3,}/).forEach(x=>out.push(x.trim()))});
+  const items=[];tc.items.forEach(it=>{if(!it.str.trim())return;const h=it.height||Math.abs(it.transform[3]);items.push({x:it.transform[4],y:it.transform[5],w:it.width,h,s:it.str,b:isBold(it.fontName)})});
+  const rowsOf=list=>{const rows=[];list.forEach(it=>{let r=rows.find(r=>Math.abs(r.y-it.y)<Math.max(2,it.h*.45));if(!r){r={y:it.y,h:it.h,items:[]};rows.push(r)}r.items.push(it);r.h=Math.max(r.h,it.h)});rows.sort((a,b)=>b.y-a.y);return rows};
+  const linesOf=rows=>{const L=[];rows.forEach(r=>{r.items.sort((a,b)=>a.x-b.x);
+    {const all=r.items.map(i=>i.s).join(' ').replace(/\s+/g,' ').trim();let run=[];const flush=()=>{const t=run.join(' ').replace(/\s+/g,' ').replace(/^[\s•·-]+|[\s:,]+$/g,'').trim();if(t.length>=2&&t!==all.replace(/[\s:]+$/,''))IMPORT_BOLD.add(t);run=[]};r.items.forEach(i=>{if(i.b)run.push(i.s);else flush()});flush()}
+    const fh=r.h||8;let seg=null;const segs=[];
+    r.items.forEach(i=>{const gap=seg?i.x-seg.end:0;if(!seg||gap>fh*2.5){seg={its:[],end:0,size:0,bold:true,x:i.x};segs.push(seg)}i.gap=seg.its.length?gap:0;seg.its.push(i);seg.end=i.x+i.w;seg.size=Math.max(seg.size,i.h);seg.bold=seg.bold&&i.b});
+    segs.forEach(sg=>{
+     // letter-spaced text arrives glyph by glyph: only a gap clearly wider than the letter spacing is a word break
+     const its=sg.its;const spaced=its.length>=4&&its.filter(i=>i.s.trim().length<=2).length>=its.length*.7;
+     let lim=Math.max(.5,fh*.06);if(spaced){const g=its.slice(1).map(i=>i.gap).sort((a,b)=>a-b);lim=g[g.length>>1]+fh*.12}
+     let t='';its.forEach((i,k)=>{if(k&&i.gap>lim&&!t.endsWith(' ')&&!i.s.startsWith(' '))t+=' ';t+=i.s});
+     t=t.replace(/\s+/g,' ').trim();if(t)L.push({t,size:Math.round(sg.size*10)/10,bold:sg.bold,page:p,x:sg.x})})});return L};
+  // Look for a vertical gutter that splits the body into two real columns of text
+  let split=null;
+  if(items.length>=20){
+   for(let cx=W*.2;cx<=W*.8;cx+=2){
+    const cross=items.filter(i=>i.x<cx-1&&i.x+i.w>cx+1);const yCut=cross.length?Math.min(...cross.map(i=>i.y)):Infinity;
+    const body=items.filter(i=>i.y<yCut-1);if(body.length<items.length*.55)continue;
+    const Lc=body.filter(i=>i.x+i.w<=cx+1),Rc=body.filter(i=>i.x>=cx-1);
+    const lr=new Set(Lc.map(i=>Math.round(i.y))).size,rr=new Set(Rc.map(i=>Math.round(i.y))).size;if(lr<5||rr<5)continue;
+    const gap=Math.min(...Rc.map(i=>i.x))-Math.max(...Lc.map(i=>i.x+i.w));if(gap<6)continue;
+    const sc=Math.min(lr,rr)*1000+gap;if(!split||sc>split.sc)split={sc,cx,yCut}
+   }
+  }
+  if(split){
+   const top=items.filter(i=>i.y>=split.yCut-1),body=items.filter(i=>i.y<split.yCut-1);
+   const left=linesOf(rowsOf(body.filter(i=>i.x+i.w/2<split.cx))),right=linesOf(rowsOf(body.filter(i=>i.x+i.w/2>=split.cx)));
+   // A narrow column made of headings/dates is a label column (Europass, Aurora): keep rows together instead
+   const DT=/^((\d{1,2}[\/.])?\d{4}|[a-z]{3,9}\.? \d{4})\s*([-–—]|to)?\s*((\d{1,2}[\/.])?\d{4}|[a-z]{3,9}\.? \d{4}|present|current|now|danas|sada)?$/i;
+   const labelish=left.filter(l=>headInfo(l.t)||DT.test(l.t)||/^(mother tongue|other language|job applied|personal information|position)/i.test(l.t)).length;
+   if(labelish>=left.length*.6){out.push(...linesOf(rowsOf(items)));continue}
+   const pre=c=>{const k=c.findIndex(l=>headInfo(l.t));return k<0?c.length:k};
+   const lp=pre(left),rp=pre(right);
+   const vol=c=>c.reduce((a,l)=>a+l.t.length,0);const [A,ap,B,bp]=vol(right.slice(rp))>vol(left.slice(lp))?[right,rp,left,lp]:[left,lp,right,rp]; // main (longer) column first
+   out.push(...linesOf(rowsOf(top)),...A.slice(0,ap),...B.slice(0,bp),...A.slice(ap),...B.slice(bp));
+  }else out.push(...linesOf(rowsOf(items)));
  }
  return out;
+}
+
+/* ---------- Word: keep headings, bold paragraphs, bullets and tables ---------- */
+async function docxLines(buf){
+ if(!window.mammoth)await loadScript(['https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js','https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js']);
+ const r=await mammoth.convertToHtml({arrayBuffer:buf},{styleMap:["p[style-name='Title'] => h1:fresh","p[style-name='Subtitle'] => h6:fresh"]});
+ const dom=new DOMParser().parseFromString(r.value,'text/html');IMPORT_LINKS=[];IMPORT_PHOTO='';IMPORT_BOLD=new Set();
+ dom.querySelectorAll('a[href]').forEach(a=>IMPORT_LINKS.push(a.getAttribute('href')));
+ const im=dom.querySelector('img[src^="data:image"]');if(im)IMPORT_PHOTO=im.getAttribute('src');
+ const txt=el=>(el.textContent||'').replace(/ /g,' ').replace(/\t+/g,' | ').replace(/\s*\n\s*/g,' ').replace(/[ ]+/g,' ').replace(/^\s*\|\s*|\s*\|\s*$/g,'').trim();
+ const walk=(node,out)=>{
+  for(const el of node.children){
+   const tag=el.tagName.toLowerCase();
+   if(/^h[1-6]$/.test(tag)){const t=txt(el);if(t)out.push({t,hd:+tag[1],bold:true})}
+   else if(tag==='p'){const t=txt(el);if(!t)continue;const bt=[...el.querySelectorAll('strong,b')].map(b=>b.textContent).join('').replace(/\s+/g,'');const bold=bt.length>0&&bt.length>=t.replace(/\s+/g,'').replace(/\|/g,'').length*.9;
+    if(!bold)el.querySelectorAll('strong,b').forEach(b=>{const s=b.textContent.trim().replace(/[\s:,]+$/,'');if(s.length>=2)IMPORT_BOLD.add(s)});out.push({t,bold})}
+   else if(tag==='ul'||tag==='ol'){for(const li of el.children){if(li.tagName!=='LI')continue;const c=li.cloneNode(true);c.querySelectorAll('ul,ol').forEach(x=>x.remove());const t=txt(c);if(t)out.push({t:'• '+t});li.querySelectorAll(':scope>ul,:scope>ol').forEach(x=>walk({children:[x]},out))}}
+   else if(tag==='table'){
+    const rows=[...el.querySelectorAll(':scope>tbody>tr,:scope>tr')];const cells=rows.map(r=>[...r.children]);
+    const colMode=rows.length<=2&&cells.some(r=>r.some(c=>c.children.length>=6));
+    if(colMode){const cols=[];cells.forEach(r=>r.forEach((c,k)=>{(cols[k]=cols[k]||[]);walk(c,cols[k])}));const pre=c=>{const k=c.findIndex(l=>headInfo(l.t));return k<0?c.length:k};const ps=cols.map(pre);cols.forEach((c,k)=>out.push(...c.slice(0,ps[k])));const vol=(c,k)=>c.slice(ps[k]).reduce((a,l)=>a+l.t.length,0);cols.map((c,k)=>k).sort((a,b)=>vol(cols[b],b)-vol(cols[a],a)).forEach(k=>out.push(...cols[k].slice(ps[k])))}
+    else cells.forEach(r=>r.forEach(c=>walk(c,out)));
+   }
+   else if(el.children.length)walk(el,out);
+   else{const t=txt(el);if(t)out.push({t})}
+  }
+ };
+ const out=[];walk(dom.body,out);return out;
 }
 async function pdfPhoto(page){
  const ops=await page.getOperatorList();const vp=page.getViewport({scale:1});const cands=[];
@@ -1329,10 +1437,11 @@ async function importFile(f){
  closeModal();toast('Reading '+f.name+'…');
  try{
   let lines;const ext=f.name.toLowerCase().split('.').pop();
-  IMPORT_LINKS=[];IMPORT_PHOTO='';
+  IMPORT_LINKS=[];IMPORT_PHOTO='';IMPORT_BOLD=new Set();
   if(ext==='pdf')lines=await pdfLines(await f.arrayBuffer());
-  else if(ext==='docx'){if(!window.mammoth)await loadScript(['https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js','https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js']);const r=await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()});lines=r.value.split('\n')}
+  else if(ext==='docx')lines=await docxLines(await f.arrayBuffer());
   else lines=(await f.text()).split('\n');
+  if(lines.filter(l=>lineText(l).trim()).length<3){toast(ext==='pdf'?'This PDF has no selectable text (it is probably a scanned image), so it cannot be imported. Try the original Word file instead.':'No text was found in this file.');return}
   const d=parseCV(lines);
   d.designs=S.designs;d.template=S.template;if(S.profile.photo.src&&!d.profile.photo.src)d.profile.photo=S.profile.photo;
   S=normalize(d);applyBold();OPEN.clear();renderPane();renderPreview();
@@ -1340,102 +1449,196 @@ async function importFile(f){
   toast(`Imported: ${S.sections.length} sections, ${roles} roles. Please review each field.`);
  }catch(err){console.error(err);toast(err&&err.message==='load'?'The import tools could not load. Check your internet connection and try again.':'This file could not be read. Try exporting it as PDF or DOCX again.')}
 }
+
+const MON='(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec|januar|februar|mart|maj|avgust|septembar|oktobar|novembar|decembar)[a-z]*\\.?';
+const DPART=`(?:${MON}\\s+\\d{4}|\\d{1,2}[\\/.]\\d{4}|\\d{4}[\\/.-]\\d{1,2}|\\d{4})`;
+const DEND=`(?:${DPART}|present|current|now|today|ongoing|danas|sada|trenutno|sada[šs]nje|u toku)`;
+const DATE=new RegExp(`(${DPART})\\s*(?:[-–—]+|to|until|do)\\s*(${DEND})\\.?`,'i');
+const DATE1=new RegExp(`^(?:since|from|od)\\s+(${DPART})$`,'i');
+
 function parseCV(raw){
- const PHR=['professional summary','summary','profile','about me','objective','contact & info','contact info','contact details','contact information','contact','personal details','details','employment history','work experience','professional experience','experience','work history','career history','education & certifications','education','certifications','courses','training','skills & tools','skills and tools','technical skills','core skills','skills','competencies','tech stack','languages','projects','achievements','awards','volunteering','interests','hobbies','references','publications'];
+ const L0=raw.map(l=>typeof l==='string'?{t:l}:Object.assign({},l));
+ // clean text; letter-spaced lines ("P R O F I L E") become words
  const lines=[];
- raw.map(l=>l.replace(/ /g,' ').replace(/[ \t]+/g,' ').trim()).filter(Boolean).forEach(l=>{
-  const low=l.toLowerCase();const ph=PHR.find(p=>low.startsWith(p+' ')&&/^[A-Z]/.test(l));
-  if(ph){const rest=l.slice(ph.length).trim();if(/^[\p{Lu}\d+]/u.test(rest)){lines.push(l.slice(0,ph.length));lines.push(rest);return}}
-  lines.push(l)});
- const full=lines.join('\n');
+ L0.forEach(o=>{let t=String(o.t||'').replace(/ /g,' ').replace(/\t+/g,' | ').replace(/[ ]+/g,' ').trim();if(!t)return;if(isSpacedText(t)){const h=headInfo(t);t=h?h.label:(()=>{const j=despace(t);return j.includes(' ')?j:t.replace(/\s+/g,'')})()}o.t=t;o.caps=/\p{L}{2}/u.test(t)&&t===t.toUpperCase();lines.push(o)});
+ const full=lines.map(l=>l.t).join('\n');
  const d={version:1,template:'aurora',profile:{name:'',title:'',summary:'',photo:{src:IMPORT_PHOTO||'',zoom:1,x:50,y:40},contactLabel:'Contact & Info',contactIcon:'user'},contacts:[],sections:[],designs:{}};
- const email=full.match(/[\w.+-]+@[\w-]+\.[\w.-]+/);const phone=full.match(/\+?\d[\d ().-]{7,}\d/);
- const add=(type,text,url='')=>{if(!text||d.contacts.some(c=>c.text.toLowerCase()===text.toLowerCase()))return;d.contacts.push({id:uid(),type,label:'',text,url,show:true})};
- const LOCRE=/^[\p{Lu}][\p{L}.]+(?:[ -][\p{Lu}][\p{L}.]+)?\s*(?:,|\s-\s)\s*[\p{Lu}][\p{L}]+(?: [\p{Lu}][\p{L}]+)?$/u;
- const SOFT=/^(professional summary|summary|profile|about me|objective|contact.*|details|personal details)$/;const firstHead=lines.findIndex(l=>{const x=l.toLowerCase().replace(/[:\s]+$/,'');return PHR.includes(x)&&!SOFT.test(x)});const headLines=lines.slice(0,firstHead<0?25:firstHead);
- let locLine='';for(const l of headLines){const mm=l.replace(/^(location|address|city)\s*:\s*/i,'').match(/(?:^[^\p{L}]*|[,|\/•]\s*)([\p{Lu}][\p{L}]+(?: [\p{Lu}][\p{L}]+)?(?:,\s*|\s[-–]\s)[\p{Lu}][\p{L}]+(?: [\p{Lu}][\p{L}]+)?)\s*$/u);if(mm&&!/@/.test(mm[1])&&!/(engineer|developer|manager|lead|tester|history|skills|tools)/i.test(mm[1])&&!/\d{4}/.test(l)){locLine=mm[1];break}}
- if(!locLine)for(const l of headLines){const mm=l.match(/(?:^|\s)([\p{Lu}][\p{L}]+(?: [\p{Lu}][\p{L}]+)?,\s*[\p{Lu}][\p{L}]+(?: [\p{Lu}][\p{L}]+)?)(?=\s+(?:https?:|www\.|\+|\d|[\w.+-]+@)|\s*$)/u);if(mm&&!/(engineer|developer|manager|lead|tester)/i.test(mm[1])){locLine=mm[1];break}}
- if(locLine)add('location',locLine.replace(/\s+-\s+/,', '));
+
+ /* --- contacts --- */
+ const email=full.match(/[\w.+-]+@[\w-]+\.[\w.-]*\w/);
+ const phoneRe=/(?:\+|\(|\b)\d[\d ().\/-]{6,}\d/g;const phoneOk=s=>{const dg=s.replace(/\D/g,'');return dg.length>=8&&dg.length<=15&&!/^\d{4}\s*[-–\/]\s*\d{4}$/.test(s.trim())&&!/^\d{1,2}[\/.]\d{4}/.test(s.trim())};
+ let phone=null;for(const [k,l] of lines.entries()){const lab=/^(phone|mobile|tel|telefon|mob|cell)/i.test(l.t)||/\+\d/.test(l.t)||l.t.length<40||k<15;if(!lab)continue;const m=(l.t.match(phoneRe)||[]).find(phoneOk);if(m){phone=m.trim();break}}
+ const add=(type,text,url='',label='')=>{if(!text||d.contacts.some(c=>c.text.toLowerCase()===text.toLowerCase()))return;d.contacts.push({id:uid(),type,label,text,url,show:true})};
+ const isContactLine=t=>(email&&t.includes(email[0]))||(phone&&t.includes(phone))||/linkedin|github|https?:\/\/|www\./i.test(t)||/^(e-?mail|mobile|phone|tel|telefon|portfolio|website|address|adresa)\b/i.test(t)||d.contacts.some(c=>t.trim().toLowerCase()===c.text.toLowerCase())||/^[a-z0-9-]+\.(com|dev|io|me|rs|net|org|app|co|eu|ai)$/i.test(t.trim());
+
+ /* --- headings: keyword match, then the document's own heading style --- */
+ const sig=l=>[l.hd?'h'+l.hd:'',l.size?Math.round(l.size):'',l.bold?1:0,l.caps?1:0].join('/');
+ const cand=lines.map((l,i)=>{if(isContactLine(l.t))return null;const h=headInfo(l.t);return h?Object.assign(h,{i}):null}).filter(Boolean);
+ const bodyKey=(()=>{const c={};lines.forEach(l=>{const k=sig(l);c[k]=(c[k]||0)+l.t.length});return Object.entries(c).sort((a,b)=>b[1]-a[1])[0]?.[0]})();
+ let hsig=null;{const c={};cand.forEach(h=>{const k=sig(lines[h.i]);c[k]=(c[k]||0)+1});const top=Object.entries(c).sort((a,b)=>b[1]-a[1])[0];if(top&&top[1]>=3&&top[1]>=cand.length*.5&&top[0]!==bodyKey&&top[0]!=='///0'&&top[0]!=='//0/0')hsig=top[0]}
+ const isHead=new Map();
+ const styled=cand.some(h=>sig(lines[h.i])!==bodyKey);
+ cand.forEach(h=>{const k=sig(lines[h.i]);if(!styled||k!==bodyKey||(h.exact&&lines[h.i].hd))isHead.set(h.i,h)});
+ if(hsig){lines.forEach((l,i)=>{if(isHead.has(i)||sig(l)!==hsig||isContactLine(l.t))return;const t=l.t.replace(/[:\s]+$/,'');const w=t.split(/\s+/);const nx=lines[i+1]?lines[i+1].t:'';if(w.length<=4&&t.length<=36&&/^[\p{Lu}]/u.test(t)&&!/\d|[,;.!?@:|·]|\s[-–—]\s/.test(t)&&!(DATE.test(nx)&&nx.replace(DATE,'').trim().length<4)&&!/^\d{4}$/.test(nx.trim()))isHead.set(i,{type:'list',label:t,exact:false})})}
+
+ /* --- name and job title --- */
+ const nameLike=t=>/^[\p{L}'’.-]+(\s+[\p{L}'’.-]+){1,3}$/u.test(t)&&t.length<=40&&!headInfo(t)&&!/\b(curriculum|vitae|resume|résumé|cv|biografija)\b/i.test(t);
+ let ni=-1;const firstHead=[...isHead.keys()].sort((a,b)=>a-b)[0]??lines.length;
+ const sized=lines.filter(l=>l.size&&(l.page||1)===1);
+ if(sized.length){const mx=Math.max(...sized.map(l=>l.size));const med=[...sized.map(l=>l.size)].sort((a,b)=>a-b)[sized.length>>1];if(mx>=med*1.25)ni=lines.findIndex(l=>l.size===mx&&(l.page||1)===1&&nameLike(l.t))}
+ if(ni<0)ni=lines.findIndex((l,i)=>i<Math.max(12,firstHead)&&l.hd&&nameLike(l.t));
+ if(ni<0)ni=lines.findIndex((l,i)=>i<12&&(l.bold||l.caps)&&nameLike(l.t)&&!isContactLine(l.t));
+ if(ni<0)ni=lines.findIndex((l,i)=>i<Math.min(6,firstHead+1)&&nameLike(l.t)&&!isContactLine(l.t));
+ const drop=new Set();
+ lines.forEach((l,i)=>{if(/^(job applied for|position applied for|desired (job|position)|preferred job|occupation|zanimanje|pozicija)$/i.test(l.t)&&lines[i+1]){d.profile.title=lines[i+1].t;drop.add(i);drop.add(i+1)}});
+ if(ni>=0){d.profile.name=titleCase(lines[ni].t);drop.add(ni);
+  for(let k=ni+1;k<Math.min(lines.length,ni+4);k++){const t=lines[k].t;if(isHead.has(k)||d.profile.title)break;if(isContactLine(t)||(email&&t.includes(email[0])))continue;
+   if(t.length<70&&!/[.!?)]$/.test(t)&&!/\d{3}/.test(t)&&!DATE.test(t)&&!headInfo(t)&&!/,\s*\p{Lu}[\p{L}]+$/u.test(t)){d.profile.title=t.replace(/^[|•·\s]+|[|•·\s]+$/g,'');drop.add(k)}break}
+  if(!d.profile.title){const nx=lines[ni+1];if(nx&&isContactLine(nx.t)){const part=nx.t.split(/\s*[|•·]\s*/)[0];if(part&&part.length<50&&!isContactLine(part)&&!/\d/.test(part)&&!/,/.test(part))d.profile.title=part}}}
+
+ /* --- split the flow into blocks --- */
+ const header=[];const blocks=[];let cur=null;const drives=[];
+ lines.forEach((l,i)=>{
+  if(drop.has(i))return;let t=l.t;
+  const dl=t.match(/^(driving licen[cs]e|driver'?s licen[cs]e|voza[čc]ka dozvola)\s*:?\s*(.{1,40})$/i);if(dl){drives.push([titleCase(dl[1]),dl[2]]);return}
+  let h=isHead.get(i);
+  if(h&&cur&&cur.type===h.type&&(h.type==='skills'||h.type==='languages')&&!h.exact&&!lines[i].hd)h=null; // a sub-label ("Digital skills") inside its own section
+  if(h&&cur&&cur.type==='experience'&&/:$/.test(t)&&!h.exact)h=null; // "Project Atlas:" inside a job
+  if(!h){ // "Skills: AWS, Docker" or a heading glued to its first line
+   const m=t.match(/^([^:]{2,32}):\s+(.+)$/);const hi=m&&headInfo(m[1]);
+   if(hi&&hi.exact&&!(cur&&cur.type==='skills')&&['skills','languages','list','summary','education'].includes(hi.type)&&!isContactLine(t)){h=hi;t=m[2]}
+   else{const w=t.split(' ');for(let n=Math.min(4,w.length-1);n>=1;n--){const p=w.slice(0,n).join(' '),r=w.slice(n).join(' ');const hp=headInfo(p);if(hp&&hp.exact&&/^[\p{Lu}\d+]/u.test(r)&&r.length>2&&!/^\S*[.:]/.test(r)&&!isHead.has(i)&&(!cur||cur.type!==hp.type)&&!(cur&&cur.type==='experience'&&hp.type==='list')&&!/^projects?$/i.test(p)&&!isContactLine(p)){h=hp;t=r;break}}if(!h)t=l.t}
+   if(h){cur={type:h.type,label:titleCase(h.label.replace(/[:\s]+$/,'')),lines:[]};blocks.push(cur);cur.lines.push(Object.assign({},l,{t}));return}
+  }
+  if(h){cur={type:h.type,label:titleCase(h.label.replace(/^[^\p{L}]+/u,'').replace(/[:\s]+$/,'')),lines:[]};blocks.push(cur);return}
+  (cur?cur.lines:header).push(l);
+ });
+ const T=a=>a.map(l=>l.t);
+
+ /* --- contact details found in the header and contact sections --- */
+ const contactTxt=T(header).concat(...blocks.filter(b=>b.type==='contact').map(b=>T(b.lines)));
+ const LOCRE=/^([\p{Lu}][\p{L}.'-]+(?:\s[\p{Lu}][\p{L}.'-]+){0,2})\s*(?:,|\s[-–]\s)\s*([\p{Lu}][\p{L}.'-]+(?:\s[\p{Lu}][\p{L}.'-]+)?|[A-Z]{2})$/u;
+ let locLine='';
+ for(const raw of contactTxt){const parts=raw.split(/\s*[|•·]\s*|\s{2,}/).map(x=>x.replace(/^(location|address|city|adresa|grad)\s*:\s*/i,'').trim());
+  for(const x of parts){if(!x||/@|\d{3}|https?:|www\./i.test(x)&&!/\(\p{L}+\)$/u.test(x))continue;if(LOCRE.test(x)&&!/(engineer|developer|manager|lead|tester|designer|analyst|history|skills|tools)/i.test(x)){locLine=x;break}}if(locLine)break}
+ if(!locLine)for(const b of blocks.filter(b=>b.type==='contact'))for(const l of T(b.lines)){if(/^[^@:]{5,70}$/.test(l)&&/,/.test(l)&&!isContactLine(l)&&!DATE.test(l)){locLine=l.replace(/^(address|adresa)\s*/i,'');break}}
+ if(locLine)add('location',locLine.replace(/\s+[-–]\s+/,', '));
  if(email)add('email',email[0]);
- if(phone)add('phone',phone[0].trim());
- const clean=u=>u.replace(/^https?:\/\/(www\.)?/i,'').replace(/\/$/,'');
+ if(phone)add('phone',phone);
+ const clean=u=>u.replace(/^https?:\/\/(www\.)?/i,'').replace(/^www\./i,'').replace(/\/$/,'');
  const typeOf=u=>/linkedin\./i.test(u)?'linkedin':/github\./i.test(u)?'github':'website';
- const headTxt=headLines.join(' ').toLowerCase();
- IMPORT_LINKS.forEach(u=>{if(/^mailto:/i.test(u)){if(!email)add('email',u.slice(7));return}if(/^tel:/i.test(u)){if(!phone)add('phone',u.slice(4));return}if(!/^https?:/i.test(u)||/google\.[a-z.]+\/maps|maps\.google|maps\.app/i.test(u))return;const t=typeOf(u);if(t==='website'&&!headTxt.includes(clean(u).split('/')[0].toLowerCase()))return;add(t,clean(u),u)});
- const urlRe=/\b((https?:\/\/)?(www\.)?(linkedin\.com|github\.com|gitlab\.com|behance\.net|dribbble\.com)\/[\w\-./%]+|(https?:\/\/)[\w\-.]+\.[a-z]{2,}[\w\-./?=&%#]*|\b[a-z0-9-]+\.(com|dev|io|me|rs|net|org|app|co)\b(\/[\w\-./%]*)?)/gi;
- (headLines.join('\n').match(urlRe)||[]).concat((full.match(/\b(https?:\/\/)?(www\.)?(linkedin\.com|github\.com|gitlab\.com|behance\.net|dribbble\.com)\/[\w\-.\/%]+/gi)||[])).filter(u=>!email||!email[0].toLowerCase().includes(u.toLowerCase())).forEach(u=>{const c=clean(u);if(d.contacts.some(x=>x.text.toLowerCase()===c.toLowerCase()||(x.url&&clean(x.url).toLowerCase()===c.toLowerCase())))return;add(typeOf(u),c,'https://'+c)});
- const HEAD=[['summary',/^(summary|profile|about( me)?|objective|professional summary)$/i],['contact',/^(contact( & info| info| details| information)?|details|personal details)$/i],['experience',/^(work |professional )?(experience|employment( history)?|work history|career( history)?)$/i],['education',/^(education|education & certifications|certifications?|courses|training|qualifications)$/i],['skills',/^(skills?|technical skills|skills & tools|skills and tools|core skills|competencies|core competencies|tech stack|tools)$/i],['languages',/^languages?$/i],['list',/^(projects|achievements|awards|volunteering|interests|hobbies|references|publications)$/i]];
- const headOf=l=>{const c=l.replace(/[:•\-–—]+$/,'').trim();if(c.length>40)return null;for(const[k,re] of HEAD)if(re.test(c))return k;return null};
- const isContactLine=l=>(email&&l.includes(email[0]))||(phone&&l.includes(phone[0].trim()))||/linkedin|github|https?:\/\//i.test(l)||/^(e-?mail|mobile|phone|tel|portfolio|website)\b/i.test(l)||(locLine&&l.includes(locLine))||d.contacts.some(c=>l.trim().toLowerCase()===c.text.toLowerCase())||/^[a-z0-9-]+\.(com|dev|io|me|rs|net|org|app|co)$/i.test(l.trim());
- let i=0;const header=[];
- while(i<lines.length&&!headOf(lines[i])){header.push(lines[i]);i++}
- const hdr=header.filter(l=>!isContactLine(l));
- const nameIdx=hdr.findIndex(l=>/^[\p{L}'’.-]+(\s[\p{L}'’.-]+){1,3}$/u.test(l)&&l.length<40);
- if(nameIdx>=0){d.profile.name=titleCase(hdr[nameIdx]);const nx=hdr[nameIdx+1];d.profile.title=nx&&nx.length<70&&!/[.!?]$/.test(nx)?nx:'';const rest=hdr.slice(nameIdx+(d.profile.title?2:1));if(rest.length)d.profile.summary=rest.join(' ')}
- else if(hdr[0])d.profile.name=hdr[0];
- const blocks=[];let cur=null;
- for(;i<lines.length;i++){const h=headOf(lines[i]);if(h){cur={type:h,label:titleCase(lines[i].replace(/:$/,'').trim()),lines:[]};blocks.push(cur)}else if(cur)cur.lines.push(lines[i])}
- const DATE=/((jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+\d{4}|\d{1,2}[\/.]\d{4}|\d{4})\s*(?:[-–—]+|to)\s*((jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+\d{4}|\d{1,2}[\/.]\d{4}|\d{4}|present|current|now)/i;
- const isBullet=l=>/^[•●▪◦\-–*·]\s*/.test(l);const strip=l=>l.replace(/^[•●▪◦\-–*·]\s*/,'');
+ const headTxt=contactTxt.join(' ').toLowerCase();
+ IMPORT_LINKS.forEach(u=>{if(/^mailto:/i.test(u)){if(!email)add('email',u.slice(7).split('?')[0]);return}if(/^tel:/i.test(u)){if(!phone)add('phone',u.slice(4));return}if(!/^https?:/i.test(u)||/google\.[a-z.]+\/maps|maps\.google|maps\.app/i.test(u))return;const t=typeOf(u);if(t==='website'&&!headTxt.includes(clean(u).split('/')[0].toLowerCase()))return;add(t,clean(u),u)});
+ const urlRe=/\b((https?:\/\/)?(www\.)?(linkedin\.com|github\.com|gitlab\.com|behance\.net|dribbble\.com)\/[\w\-./%]+|(https?:\/\/)[\w\-.]+\.[a-z]{2,}[\w\-./?=&%#]*|(www\.)?[a-z0-9-]+\.(com|dev|io|me|rs|net|org|app|co|eu|ai)\b(\/[\w\-./%]*)?)/gi;
+ (contactTxt.join('\n').match(urlRe)||[]).concat((full.match(/\b(https?:\/\/)?(www\.)?(linkedin\.com|github\.com|gitlab\.com|behance\.net|dribbble\.com)\/[\w\-.\/%]+/gi)||[])).filter(u=>!email||!email[0].toLowerCase().includes(clean(u).toLowerCase())).forEach(u=>{const c=clean(u);if(d.contacts.some(x=>x.text.toLowerCase()===c.toLowerCase()||(x.url&&clean(x.url).toLowerCase()===c.toLowerCase())||c.toLowerCase().startsWith(x.text.toLowerCase())&&x.type!=='website'))return;add(typeOf(u),c,'https://'+c)});
+ blocks.filter(b=>b.type==='contact').forEach(b=>T(b.lines).forEach(l=>{const m=l.match(/^([\p{L}][\p{L} ()\/'.-]{1,30}):\s*(.+)$/u);if(m&&!isContactLine(l)&&!/^(location|address|city|adresa)$/i.test(m[1].trim()))add('custom',m[2].trim(),'',m[1].trim())}));
+ blocks.forEach(b=>{if(b.type==='contact'&&/driv|voza/i.test(b.label)&&b.lines.length)add('custom',T(b.lines).join(' '),'',b.label)});
+ drives.forEach(([k,v])=>add('custom',v,'',k));
+
+ /* --- summary from the header --- */
+ const hdr=T(header).filter(t=>!isContactLine(t)&&!(locLine&&t.includes(locLine))&&!/^(curriculum vitae|resume|résumé|cv)$/i.test(t));
+ if(hdr.length)d.profile.summary=hdr.join(' ');
+
+ const isBullet=l=>/^[•●▪◦\-–*·➢►■□✓✔]\s*/.test(l);const strip=l=>l.replace(/^[•●▪◦\-–*·➢►■□✓✔]\s*/,'');
+ const tidyDate=s=>titleCase(s.replace(/\s*[-–—]+\s*/,' – '));
  blocks.forEach(b=>{
-  const DEFAULT_ICONS={experience:'briefcase',skills:'wrench',education:'graduation-cap',languages:'languages',text:'user',list:'star'};
-  const sec={id:uid(),type:b.type==='summary'?'text':b.type,label:b.label,icon:DEFAULT_ICONS[b.type==='summary'?'text':b.type]||'star',show:true,side:['skills','languages'].includes(b.type),items:[],body:''};
   if(b.type==='contact')return;
-  if(b.type==='summary'){const L=b.lines.filter(l=>!isContactLine(l));if(!d.profile.title&&L.length>1&&L[0].length<70&&!/[.!?]$/.test(L[0]))d.profile.title=L.shift();if(!d.profile.summary){d.profile.summary=L.join(' ');return}sec.body=L.join(' ')}
-  else if(b.type==='experience'){
-   let job=null,grp=null;const pending=[];
-   b.lines.forEach((l,ix)=>{
-    const m=l.match(DATE);
-    if(m&&l.replace(m[0],'').replace(/[|,·]/g,'').trim().length<70&&!isBullet(l)){
-     const at=l.indexOf(m[0]);const before=l.slice(0,at).replace(/\s*[|·,]\s*$/,'').trim();
-     const prev=pending.splice(0).filter(x=>!isBullet(x));
-     let head=before,loc2='',lc0='';const LOCRE=/^[\p{Lu}][\p{L}]+(?:,\s*[\p{Lu}][\p{L}]+)+$/u;
-     const li=prev.findIndex(x=>LOCRE.test(x));if(li>=0&&prev.length>1){lc0=prev[li];prev.splice(li,1)}
-     if(!head){head=prev.pop()||'';}
-     if(prev.length)loc2=prev.join(' ');
-     const p=head.split(/\s+[-–—|@]\s+|\s+at\s+|,\s+/);
-     let co=p.slice(1).join(' ')||loc2,lc=lc0;const cm=co.match(/^(.+?)\s+([\p{Lu}][\p{L}]+(?:,\s*[\p{Lu}][\p{L}]+)+)$/u);if(cm&&!p.slice(1).length){co=cm[1];lc=cm[2]}
-     job={id:uid(),role:p[0]||'',company:co,location:'',start:titleCase(m[1]),end:titleCase(m[3]),groups:[]};
-     if(!before&&prev.length)job.company=job.company||'';
-     const tail=l.slice(at+m[0].length).replace(/^[\s|,·]+/,'').trim();job.location=tail||lc;
-     sec.items.push(job);grp=null;return;
-    }
-    if(job&&!isBullet(l)&&l.length<60){let ahead=false;for(let q=1;q<=3;q++){const nx=b.lines[ix+q];if(!nx||isBullet(nx)||nx.length>=70)break;const dm=nx.match(DATE);if(dm&&nx.replace(dm[0],'').trim().length<70){ahead=true;break}}if(ahead){pending.push(l);return}}
-    if(!job){pending.push(l);return}
-    if(isBullet(l)){if(!grp){grp={id:uid(),name:'',bullets:''};job.groups.push(grp)}grp.bullets+=(grp.bullets?'\n':'')+strip(l);return}
-    if(/:$/.test(l)&&l.length<60){grp={id:uid(),name:l,bullets:''};job.groups.push(grp);return}
-    if(!job.groups.length&&!job.company&&l.length<60){job.company=l;return}
-    if(!job.groups.length&&!job.location&&/^[\p{L} ,]+$/u.test(l)&&l.length<40&&/,/.test(l)){job.location=l;return}
-    if(grp&&grp.bullets){const last=grp.bullets.split('\n').pop();if(/^[a-z(]/.test(l)||!/[.!?;]$/.test(last)){grp.bullets+=' '+l;return}}
-    if(!grp){grp={id:uid(),name:'',bullets:''};job.groups.push(grp)}
-    grp.bullets+=(grp.bullets?'\n':'')+l;
-   });
-   sec.items.forEach(j=>{if(!j.groups.length)j.groups.push({id:uid(),name:'',bullets:''})});
+  let type=b.type;
+  if(type==='list'&&/volunteer|volontir/i.test(b.label)&&b.lines.some(l=>DATE.test(l.t)))type='experience';
+  const DEFAULT_ICONS={experience:'briefcase',skills:'wrench',education:'graduation-cap',languages:'languages',text:'user',list:'star'};
+  const sec={id:uid(),type:type==='summary'?'text':type,label:b.label,icon:DEFAULT_ICONS[type==='summary'?'text':type]||'star',show:true,side:['skills','languages','education'].includes(type),items:[],body:''};
+  const BL=T(b.lines);
+  if(type==='summary'){const L=BL.filter(l=>!isContactLine(l));if(!d.profile.title&&L.length>1&&L[0].length<70&&!/[.!?]$/.test(L[0])&&!/^[\p{Ll}]/u.test(L[1]||''))d.profile.title=L.shift();
+   if(!d.profile.summaryLabel){d.profile.summary=L.join(' ');d.profile.summaryLabel=b.label;return}
+   sec.body=L.join(' ')}
+  else if(type==='experience')parseJobs(BL,sec);
+  else if(type==='skills'){
+   const L2=BL.map(strip).filter(Boolean);const merged=[];
+   for(let k=0;k<L2.length;k++){const t=L2[k],n=L2[k+1];if(n&&((!/[:,]/.test(t)&&t.length<36&&/[,·]/.test(n)&&!/^[\p{Ll}]/u.test(n))||(/:$/.test(t)&&t.length<40))&&!/^[^:]{2,40}:/.test(n)){merged.push(t.replace(/:$/,'')+': '+n);k++}else merged.push(t)}
+   const BOLDL=[...IMPORT_BOLD].filter(x=>x.length<42&&!/[,.]$/.test(x));
+   merged.forEach(t=>{let m=t.match(/^([^:]{2,40}):\s*(.+)$/);if(!m){const bl=BOLDL.find(x=>t.startsWith(x+' ')&&t.length>x.length+3);if(bl)m=[t,bl,t.slice(bl.length+1)]}
+    if(!m&&sec.items.length&&sec.items.at(-1).label){sec.items.at(-1).value+=' '+t;return}if(m)sec.items.push({id:uid(),label:m[1].trim(),value:m[2].trim()});else if(sec.items.length&&/^[\p{Ll}(]/u.test(t))sec.items.at(-1).value+=' '+t;else sec.items.push({id:uid(),label:'',value:t})});
+   const plain=sec.items.filter(r=>!r.label);if(plain.length>=3&&plain.length===sec.items.length&&plain.every(r=>r.value.length<32&&!/[,·]/.test(r.value)))sec.items=[{id:uid(),label:'',value:plain.map(r=>r.value).join(', ')}];
   }
-  else if(b.type==='skills'){
-   const L2=b.lines.map(strip);const merged=[];for(let k=0;k<L2.length;k++){const t=L2[k],n=L2[k+1];if(n&&((!/[:,]/.test(t)&&t.length<36&&/,/.test(n))||(/:$/.test(t)&&t.length<40))&&!/:/.test(n)){merged.push(t.replace(/:$/,'')+': '+n);k++}else merged.push(t)}
-   merged.forEach(t=>{const m=t.match(/^([^:]{2,40}):\s*(.+)$/);if(m)sec.items.push({id:uid(),label:m[1].trim(),value:m[2].trim()});else if(sec.items.length&&!sec.items.at(-1).label&&t.length<120)sec.items.push({id:uid(),label:'',value:t});else if(sec.items.length&&/^[a-z(]/.test(t))sec.items.at(-1).value+=' '+t;else sec.items.push({id:uid(),label:'',value:t})});
+  else if(type==='education'){
+   let pend='';const INST=/\b(universit|college|school|institut|academy|akademij|fakultet|faculty|gimnazij|[šs]kola|polytechnic|politehni)/i;
+   const EL=[];BL.forEach(l=>{if(EL.length&&/^[\p{Ll}(]/u.test(l)&&!isBullet(l))EL[EL.length-1]+=' '+l;else EL.push(l)});
+   EL.forEach(l=>{const t=strip(l).replace(/^\|\s*|\s*\|$/g,'');
+    const only=t.match(new RegExp(`^(${DPART}(?:\\s*(?:[-–—]+|to)\\s*${DEND})?)$`,'i'));
+    if(only){const last=sec.items.at(-1);if(last&&!last.dates)last.dates=tidyDate(only[1]);else pend=tidyDate(only[1]);return}
+    const lead=t.match(new RegExp(`^(${DPART}\\s*(?:[-–—]+|to)\\s*${DEND}|${DPART})\\s*[|,:]?\\s+(.+)$`,'i'));
+    const m=lead?null:t.match(new RegExp(`[\\s|,(–-]*(${DPART}\\s*(?:[-–—]+|to)\\s*${DEND}|${DPART})\\)?\\s*$`,'i'));
+    let title=lead?lead[2]:(m?t.slice(0,m.index):t);let dates=lead?tidyDate(lead[1]):(m?tidyDate(m[1]):'');
+    title=title.replace(/[\s|,–-]+$/,'');
+    const last=sec.items.at(-1);
+    if(last&&!last.note&&!dates&&INST.test(title)&&!INST.test(last.title)&&title.length<90){last.note=title;return}
+    const ip=title.match(/\s*[-–(]?\s*(in[- ]progress|u toku)\)?\s*$/i);
+    sec.items.push({id:uid(),title:(ip?title.slice(0,ip.index):title).replace(/[\s|,–-]+$/,'').trim(),note:ip?'in progress':'',dates:dates||pend});pend=''});
   }
-  else if(b.type==='education'){
-   b.lines.forEach(l=>{const t=strip(l);const m=t.match(/(\d{4}\s*(?:[-–—]+|to)\s*(?:\d{4}|present|current|now)|\d{4})\s*$/i);
-    if(sec.items.length&&!sec.items.at(-1).dates&&/^\d{4}(\s*(?:[-–—]+|to)\s*(\d{4}|present|current|now))?$/i.test(t)){sec.items.at(-1).dates=t.replace(/\s*[-–—]+\s*/,' – ');return}
-    const title=(m?t.slice(0,m.index):t).replace(/[\s|,–-]+$/,'');const ip=title.match(/\s*[-–(]?\s*(in[- ]progress)\)?\s*$/i);
-    sec.items.push({id:uid(),title:ip?title.slice(0,ip.index).trim():title,note:ip?'in progress':'',dates:m?m[1].replace(/\s*[-–—]+\s*/,' – '):''})});
+  else if(type==='languages'){
+   const LV=/^([abc][12](\s*[-–\/]\s*[abc][12])?|native|mother tongue|fluent|basic|intermediate|upper[- ]intermediate|advanced|proficient|elementary|beginner|conversational|professional working proficiency|full professional proficiency|maternji|izvorni|osnovni|srednji|napredni|te[čc]no)$/i;
+   if(/mother|tongue|maternji/i.test(sec.label))sec.label='Languages';
+   const parts=BL.map(x=>strip(x).replace(/\(s\)/gi,'s').replace(/^(mother tongues?|other languages?|maternji jezik|strani jezici)\s*:?\s*/i,'')).join(' | ').split(/\s*[|,;•]\s*/).filter(Boolean);const out=[];
+   parts.forEach(p=>{p=p.trim().replace(/\.$/,'');if(!p||/^(mother tongues?|other languages?|maternji jezik|strani jezici)\b/i.test(p))return;
+    if(LV.test(p)&&out.length&&!out.at(-1).level){out.at(-1).level=titleCase(p);return}
+    let m=p.match(/^([\p{L} ]+?)\s*\((.+)\)$/u)||p.match(/^([\p{L} ]+?)\s*[-–—:]\s*(.+)$/u);
+    if(!m){const k=p.match(/^([\p{L} ]+?)\s+(\S+(?:\s*[-–\/]\s*\S+)?)$/u);if(k&&LV.test(k[2]))m=k}
+    if(m){out.push({id:uid(),name:m[1].trim(),level:m[2].trim()});return}
+    if(/^[\p{L} ]{2,30}$/u.test(p))out.push({id:uid(),name:p,level:''})});
+   sec.items=out;
   }
-  else if(b.type==='languages'){
-   const parts=b.lines.join(' | ').split(/\s*[|,;•]\s*/).filter(Boolean);const out=[];
-   parts.forEach(p=>{p=p.trim();if(/^([abc][12]|native|fluent|basic|intermediate|advanced|proficient|elementary)$/i.test(p)&&out.length&&!out.at(-1).level){out.at(-1).level=p;return}const m=p.match(/^([\p{L} ]+?)\s*(?:\((.+)\)|[-–:]\s*(.+))?$/u);if(!m)return;const lv=m[2]||m[3]||'';
-    if(!lv&&out.length&&!out.at(-1).level&&/^(native|fluent|basic|intermediate|advanced|[abc][12])$/i.test(m[1].trim())){out.at(-1).level=m[1].trim();return}
-    out.push({id:uid(),name:m[1].trim(),level:lv.trim()})});sec.items=out;
-  }
-  else {sec.body=b.lines.map(strip).join('\n')}
+  else sec.body=BL.map(strip).join('\n');
+  if(!sec.items.length&&!String(sec.body).trim())return;
   d.sections.push(sec);
  });
- if(!d.sections.length&&lines.length>header.length)d.sections.push({id:uid(),type:'text',label:'Details',icon:'star',show:true,side:false,items:[],body:lines.slice(header.length).join('\n')});
+ if(!d.sections.length&&lines.length>header.length+drop.size+3)d.sections.push({id:uid(),type:'text',label:'Details',icon:'star',show:true,side:false,items:[],body:T(header).join('\n')});
  return d;
 }
-function titleCase(s){return s&&s===s.toUpperCase()&&/[A-Z]/.test(s)?s.toLowerCase().replace(/(^|[\s'-])(\p{L})/gu,(m,a,b)=>a+b.toUpperCase()):s}
 
+function parseJobs(lines,sec){
+ const isBullet=l=>/^[•●▪◦\-–*·➢►■□✓✔]\s*/.test(l);const strip=l=>l.replace(/^[•●▪◦\-–*·➢►■□✓✔]\s*/,'');
+ const SEP=/\s+[-–—|@·•]\s+|\s+at\s+|\s*[|·•]\s*|,\s+/;
+ const dateOf=l=>{const m=l.match(DATE);if(m)return {m,s:m[1],e:m[2]};const o=l.trim().match(DATE1);return o?{m:o,s:o[1],e:'Present'}:null};
+ const isHeadLine=l=>{const dm=dateOf(l);return dm&&!isBullet(l)&&l.replace(dm.m[0],'').replace(/[|,·()]/g,'').trim().length<80};
+ // Layout: dates before the role ("2019 – 2021  Nurse, Hospital") vs. role first
+ const firstDate=lines.findIndex(isHeadLine);
+ const dateFirst=firstDate===0||(firstDate>0&&lines[firstDate].trim().indexOf(dateOf(lines[firstDate]).m[0])===0&&lines.slice(0,firstDate).every(isBullet));
+ let job=null,grp=null,need=0;const pending=[];
+ const setHead=(head,job)=>{const p=head.split(SEP).map(x=>x.trim()).filter(Boolean);job.role=p[0]||'';if(p.length>1){job.company=p[1];if(p.length>2&&!job.location)job.location=p.slice(2).join(', ')}};
+ lines.forEach((l,ix)=>{
+  if(isHeadLine(l)){
+   const dm=dateOf(l);const at=l.indexOf(dm.m[0]);const before=l.slice(0,at).replace(/[\s|·,(–-]+$/,'').trim();
+   const tail=l.slice(at+dm.m[0].length).replace(/^[\s|,·)]+/,'').trim();
+   const prevJob=sec.items.at(-1);const pall=dateFirst?[]:pending.splice(0);const prev=pall.filter(x=>!isBullet(x));const back=pall.filter(isBullet);
+   job={id:uid(),role:'',company:'',location:'',start:titleCase(dm.s),end:titleCase(dm.e),groups:[]};sec.items.push(job);grp=null;need=0;
+   let lc='';const LOC=/^[\p{Lu}][\p{L}.-]+(?:\s[\p{Lu}][\p{L}.-]+)?(?:,\s*[\p{Lu}][\p{L}.-]+(?:\s[\p{Lu}][\p{L}.-]+)?)+$/u;
+   const li=prev.findIndex(x=>LOC.test(x));if(li>=0&&prev.length>1)lc=prev.splice(li,1)[0];
+   if(before&&prev.length&&!SEP.test(before)){job.role=prev.pop();job.company=before}
+   else if(before){setHead(before,job);if(!job.company&&prev.length)job.company=prev.join(' ')}
+   else if(prev.length){const h=prev.pop();setHead(h,job);if(!job.company&&prev.length){job.company=prev.shift();if(prev.length&&!job.location)job.location=prev.splice(0).join(', ')}}
+   if(prev.length>0&&!(prev.length===1&&!job.company&&(job.company=prev.pop())))back.unshift(...prev.splice(0));
+   if(back.length){const tj=prevJob||job;let g=tj.groups.at(-1);if(!g){g={id:uid(),name:'',bullets:''};tj.groups.push(g)}g.bullets+=(g.bullets?'\n':'')+back.map(strip).join('\n')}
+   if(!job.role&&tail&&dateFirst){setHead(tail,job);need=job.company?0:2}
+   else{job.location=tail||lc;if(!job.role)need=1}
+   return;
+  }
+  if(job&&need&&!isBullet(l)&&l.length<80){if(need===1){setHead(l,job);need=job.company?0:2;return}if(need===2){need=0;if(l.length<60&&!/[.!?]$/.test(l)){const p=l.split(/,\s+/);job.company=p[0];if(p[1]&&!job.location)job.location=p.slice(1).join(', ');return}}}
+  need=0;
+  if(!dateFirst&&job&&!isBullet(l)&&l.length<70&&!/[.!?;]$/.test(l)){const short=x=>x&&!isBullet(x)&&x.length<60&&!/[.!?;]$/.test(x)&&!isHeadLine(x);
+   for(let q=1;q<=3;q++){const nx=lines[ix+q];if(nx&&isHeadLine(nx)){pending.push(l);return}if(!short(nx))break}}
+  if(!job){pending.push(l);return}
+  if(isBullet(l)){if(!grp){grp={id:uid(),name:'',bullets:''};job.groups.push(grp)}grp.bullets+=(grp.bullets?'\n':'')+strip(l);return}
+  if(/:$/.test(l)&&l.length<60){grp={id:uid(),name:l,bullets:''};job.groups.push(grp);return}
+  if(!job.groups.length&&!job.company&&l.length<60&&!/[.!?]$/.test(l)){const p=l.split(/\s*[|·•]\s*|\s+[-–—]\s+/);job.company=p[0];if(p[1]&&!job.location)job.location=p.slice(1).join(', ');return}
+  if(!job.groups.length&&!job.location&&/^[\p{L} ,.-]+$/u.test(l)&&l.length<40&&/,/.test(l)){job.location=l;return}
+  if(grp&&grp.bullets){const last=grp.bullets.split('\n').pop();if(/^[\p{Ll}(]/u.test(l)||!/[.!?;]$/.test(last)&&last.length>45){grp.bullets+=' '+l;return}}
+  if(!grp){grp={id:uid(),name:'',bullets:''};job.groups.push(grp)}
+  grp.bullets+=(grp.bullets?'\n':'')+l;
+ });
+ if(!sec.items.length&&pending.length){const job={id:uid(),role:'',company:'',location:'',start:'',end:'',groups:[{id:uid(),name:'',bullets:pending.map(strip).join('\n')}]};sec.items.push(job)}
+ sec.items.forEach(j=>{if(!j.groups.length)j.groups.push({id:uid(),name:'',bullets:''})});
+}
+function titleCase(s){return s&&s===s.toUpperCase()&&/\p{Lu}/u.test(s)?s.toLowerCase().replace(/(^|[\s'(\/-])(\p{L})/gu,(m,a,b)=>a+b.toUpperCase()).replace(/\b(And|Of|The|In|At|For|I)\b(?!$)/g,w=>w.toLowerCase()).replace(/^(\p{Ll})/u,c=>c.toUpperCase()):s}
 
 function applyBold(){
  const P=[...IMPORT_BOLD].filter(p=>p.length>=2&&p.length<120).sort((a,b)=>b.length-a.length);if(!P.length)return;
