@@ -2,6 +2,8 @@
 
 A CV builder that runs in your browser as a single HTML file. Write your CV, pick a design, check how well it reads in applicant tracking systems (ATS), and save it as a PDF with real, selectable text.
 
+![Alternative Text](https://raw.githubusercontent.com/DLazzzar/Aurora-CV-Builder/refs/heads/main/Preview%20Image.png)
+
 There is no account, no server and no upload. Your CV stays in your own browser.
 
 **Live page:** https://dlazzzar.github.io/Aurora-CV-Builder/
