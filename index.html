@@ -228,7 +228,7 @@ textarea.inp{resize:vertical;min-height:62px;line-height:1.45}
 @media (max-width:420px){.tgrid,.fonts,.sgrid{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media print{
-  html,body{height:auto!important;overflow:visible!important;background:#fff!important}
+  :root,html,body{color-scheme:light!important;height:auto!important;overflow:visible!important;background:#fff!important}
   body>*:not(#printRoot){display:none!important}
   #printRoot{display:block}
 }
@@ -258,7 +258,7 @@ textarea.inp{resize:vertical;min-height:62px;line-height:1.45}
 .cv .rt p,.cv .rt div{margin:0}
 .cv .rt ul,.cv .rt ol{margin-top:3pt}
 .cv .keep{break-inside:avoid}
-.cv .dates{font-variant-numeric:tabular-nums}
+.cv .dates{font-variant-numeric:normal}
 .cv .muted{color:var(--c-muted)}
 @media print{.cv{overflow:visible;min-height:0}.cv-bg{position:fixed}.t-side .cv-inner{min-height:0!important}.cv-inner,.t-side .s-aside,.t-side .s-main{padding-bottom:0!important}}
 
@@ -347,14 +347,14 @@ textarea.inp{resize:vertical;min-height:62px;line-height:1.45}
 
 /* Glass */
 .t-glass{letter-spacing:-.01em}
-.t-glass .cv-inner{padding:var(--c-pad-y) var(--c-pad-x) 24pt}
+.t-glass .cv-inner{padding:var(--c-pad-y) var(--c-pad-x) 14pt}
 .t-glass .glass{position:relative;border-radius:20pt;background:rgba(255,255,255,calc(var(--c-glass) + .12));border:.8pt solid rgba(255,255,255,.95);outline:.6pt solid rgba(38,48,110,.07)}
 .t-glass.glass-art .glass{background:transparent;outline:none;border:.8pt solid rgba(255,255,255,.7)}
 .t-glass.glass-art .g-chips a{background:transparent!important;border-color:rgba(255,255,255,.75)!important}
 .t-glass.glass-art .cv-bg.baked{position:absolute!important;background-size:100% auto!important;background-position:0 0!important}
 .t-glass .glass>*{position:relative;z-index:1}
 .t-glass .g-card{break-inside:avoid}
-.t-glass .g-head{padding:14pt 16pt 12pt}
+.t-glass .g-head{padding:11pt 16pt 10pt}
 .t-glass .g-top{display:flex;align-items:center;gap:16pt}
 .t-glass .g-top.right{flex-direction:row-reverse}
 .t-glass .g-top .avatar{box-shadow:0 0 0 3pt rgba(255,255,255,.85)}
@@ -362,14 +362,14 @@ textarea.inp{resize:vertical;min-height:62px;line-height:1.45}
 .t-glass .g-role{font-size:calc(var(--c-name)*.72);font-weight:var(--c-wh);color:var(--c-accent);margin-top:4pt;letter-spacing:-.015em}
 .t-glass .g-sum{font-size:calc(var(--c-sum)*.8);line-height:1.4;color:var(--c-muted);margin-top:6pt}
 .t-glass .g-sum b{color:var(--c-text)}
-.t-glass .g-chips{display:flex;flex-wrap:wrap;gap:5pt;margin-top:11pt}
+.t-glass .g-chips{display:flex;flex-wrap:wrap;gap:5pt;margin-top:9pt}
 .t-glass .g-chips a{display:inline-flex;align-items:center;gap:4pt;padding:3pt 8.5pt;border-radius:999px;font-size:.88em;background:rgba(255,255,255,.82);border:.7pt solid rgba(38,48,110,.08)}
 .t-glass .g-chips .ic{color:var(--c-accent);width:1.05em;height:1.05em}
-.t-glass .g-card{margin-top:var(--c-gap);padding:11pt 15pt 12pt}
-.t-glass .g-h{display:flex;align-items:center;gap:8pt;font-size:1.18em;margin-bottom:9pt;letter-spacing:-.02em}
+.t-glass .g-card{margin-top:var(--c-gap);padding:8pt 15pt 9pt}
+.t-glass .g-h{display:flex;align-items:center;gap:8pt;font-size:1.18em;margin-bottom:6pt;letter-spacing:-.02em}
 .t-glass .g-ic{width:20pt;height:20pt;border-radius:50%;display:grid;place-items:center;flex:none;color:#fff;background:var(--c-accent);border:.8pt solid rgba(255,255,255,.55)}
 .t-glass .g-ic .ic{width:11pt;height:11pt}
-.t-glass .job+.job{margin-top:11pt;padding-top:11pt;border-top:.7pt solid rgba(255,255,255,.85)}
+.t-glass .job+.job{margin-top:8pt;padding-top:8pt;border-top:.7pt solid rgba(255,255,255,.85)}
 .t-glass .jh{display:flex;justify-content:space-between;gap:12pt;align-items:baseline}
 .t-glass .jh h3{font-size:1.08em}
 .t-glass .jh .dates{font-size:.86em;color:var(--c-muted);white-space:nowrap;padding:1pt 7pt;border-radius:999px;background:rgba(255,255,255,.55);border:.6pt solid rgba(255,255,255,.9)}
@@ -410,8 +410,9 @@ textarea.inp{resize:vertical;min-height:62px;line-height:1.45}
 .t-classic h1{font-size:var(--c-name);line-height:1.15;letter-spacing:.005em}
 .t-classic .c-role{font-family:var(--c-hfont);font-style:italic;font-size:calc(var(--c-name)*.42);color:#333;margin-top:6pt}
 .t-classic .c-contact{margin-top:12pt;border-top:.6pt solid var(--c-div);border-bottom:.6pt solid var(--c-div);padding:5pt 0;text-align:center;font-size:.86em}
-.t-classic .c-contact .pp{color:#9a9a9a;margin:0 4pt}
+.t-classic .c-contact .pp{color:#9a9a9a;margin:0 1pt}
 .t-classic .c-contact a.lk{color:var(--c-accent)}
+.t-classic .c-contact a{white-space:nowrap}
 .t-classic h2{font-family:var(--c-font);font-size:.82em;font-weight:700;text-transform:uppercase;letter-spacing:.26em;border-bottom:.6pt solid var(--c-div);padding-bottom:4pt;margin:var(--c-gap) 0 9pt}
 .t-classic .c-sum{text-align:justify}
 .t-classic .job+.job{margin-top:8pt}
@@ -609,7 +610,7 @@ const TEMPLATES={
  aurora:{name:'Aurora',note:'Your main design: label column and a soft gradient.',ats:8,photo:true,design:TPL({})},
  side:{name:'Aurora Sidebar',note:'Same look with a left sidebar for contact, skills and languages.',ats:6,photo:true,sidebar:true,design:TPL({muted:'#545770',accent:'#3a3f8f',divider:'#20213e22',size:9.3,sum:13,photo:90,label:190,gap:14,padX:26,padY:30,contactCols:1})},
  spot:{name:'Aurora Spotlight',note:'Gradient header band, contact chips, single column.',ats:9,photo:true,design:TPL({text:'#1f2238',muted:'#53566b',accent:'#3d3a8c',divider:'#1f22382a',size:9.8,sum:13,photo:92,gap:18,padX:36,padY:34,grad:{base:'#ffffff',stops:[{color:'#ffd2b8',x:0,y:30,size:65,opacity:.75},{color:'#c4ecdd',x:45,y:0,size:55,opacity:.7},{color:'#d4ccff',x:100,y:35,size:70,opacity:.85}]}})},
- glass:{name:'Glass',note:'Frosted glass panels with light rims over a colourful background.',ats:7,photo:true,design:TPL({font:'inter',wn:700,wh:600,wb:600,track:-.01,text:'#1d1d1f',muted:'#56565e',accent:'#0a6cff',divider:'#0000001a',size:9.3,name:18,sum:13,photo:74,gap:8,padX:22,padY:18,glass:.34,grad:GRAD_PRESETS.Tahoe})},
+ glass:{name:'Glass',note:'Frosted glass panels with light rims over a colourful background.',ats:7,photo:true,design:TPL({font:'inter',wn:700,wh:600,wb:600,track:-.01,text:'#1d1d1f',muted:'#56565e',accent:'#0a6cff',divider:'#0000001a',size:9.3,name:18,sum:13,photo:74,gap:6,padX:22,padY:16,glass:.34,grad:GRAD_PRESETS.Tahoe})},
  classic:{name:'Classic',note:'Serif name, spaced capital headings and hairline rules.',ats:10,photo:false,design:TPL({font:'arial',hfont:'dejavu',wn:400,wh:700,wb:700,track:0,text:'#222222',muted:'#5c5c5c',accent:'#2b4a8b',divider:'#c9c9c9',size:9.3,name:25,sum:10,photo:0,photoPos:'none',gap:13,padX:62,padY:32,showIcons:false,gradOn:false,grad:GRAD_PRESETS.None})},
  banner:{name:'Garamond Banner',note:'Garamond type, grey title bands, diamond markers and dotted leaders.',ats:9,photo:false,design:TPL({font:'garamond',wn:700,wh:600,wb:700,track:0,text:'#1a1a1a',muted:'#333333',accent:'#1a1a1a',divider:'#1a1a1a',band:'#ececec',size:9.8,name:21,sum:10,photo:0,photoPos:'none',gap:12,padX:42,padY:30,showIcons:false,gradOn:false,grad:GRAD_PRESETS.None})},
  details:{name:'Details',note:'Square photo, icon headings and a right-hand Details column.',ats:6,photo:true,sidebar:true,design:TPL({font:'sourcesans',wn:600,wh:600,wb:700,track:0,text:'#1f1f1f',muted:'#a3a3a3',accent:'#1f1f1f',divider:'#e5e5e5',size:9.6,name:23,sum:10,photo:44,photoShape:'rounded',label:132,gap:16,padX:54,padY:34,gradOn:false,grad:GRAD_PRESETS.None})},
@@ -799,11 +800,10 @@ function renderCV(T=S.template,d=D(T),data=null){
  else if(T==='glass'){
   h+=`<header class="glass g-head"><div class="g-top ${d.photoPos==='right'?'right':''}">${avatar(d,T)}<div><h1>${name}</h1>${title?`<div class="g-role">${title}</div>`:''}${sum?`<div class="g-sum rt">${sum}</div>`:''}</div></div>${vc.length?`<div class="g-chips">${vc.map(c=>contactLink(c,d)).join('')}</div>`:''}</header>`;
   const card=s=>`<section class="glass g-card"><div class="g-h hd">${d.showIcons?`<span class="g-ic">${ic(s.icon)}</span>`:''}${esc(s.label)}</div>${body(s,d,T)}</section>`;
-  let i=0;const small=['education','languages','references'];
-  while(i<vs.length){const a=vs[i],b=vs[i+1];if(b&&small.includes(a.type)&&small.includes(b.type)){h+=`<div class="pair">${card(a)}${card(b)}</div>`;i+=2}else{h+=card(a);i++}}
+  vs.forEach(s=>{h+=card(s)}); // one card per row: side-by-side cards scramble reading order in some ATS parsers
  }
  else if(T==='classic'){
-  const ct=vc.map(c=>aLink(c,esc(LINKISH.includes(c.type)?linkText(c):(c.type==='info'&&cLab(c)?cLab(c)+': '+c.text:c.text))).replace('<a ',(LINKISH.includes(c.type)||c.type==='email')?'<a class="lk" ':'<a ')).join('<span class="pp">|</span>');
+  const ct=vc.map(c=>aLink(c,esc(LINKISH.includes(c.type)?linkText(c):(c.type==='info'&&cLab(c)?cLab(c)+': '+c.text:c.text))).replace('<a ',(LINKISH.includes(c.type)||c.type==='email')?'<a class="lk" ':'<a ')).join(' <span class="pp">|</span> ');
   h+=`<header class="c-head"><h1>${name}</h1>${title?`<div class="c-role">${title}</div>`:''}${ct?`<div class="c-contact">${ct}</div>`:''}</header>`;
   if(sum)h+=`<h2>${esc(p.summaryLabel||'Profile')}</h2><div class="c-sum rt">${sum}</div>`;
   vs.forEach(s=>{h+=`<h2>${esc(s.label)}</h2>${body(s,d,T)}`});
