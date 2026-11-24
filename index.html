@@ -288,6 +288,27 @@ textarea.inp{resize:vertical;min-height:62px;line-height:1.45}
 .t-aurora .rows .r+.r{margin-top:4pt}
 .t-aurora .rows .r .dates{color:var(--c-muted);white-space:nowrap}
 
+/* Aurora Wide: Aurora look without the photo; section titles sit above a divider and the text runs across the page */
+.t-wide h1{font-size:var(--c-name);line-height:1.2;letter-spacing:-.01em}
+.t-wide .w-role{font-size:calc(var(--c-name)*.78);line-height:1.3;font-weight:var(--c-wh);margin-top:4pt}
+.t-wide .w-sum{font-size:var(--c-sum);line-height:1.3;font-weight:500;margin-top:6pt;letter-spacing:-.015em}
+.t-wide .w-sec{margin-top:var(--c-gap)}
+.t-wide .w-top+.w-sec{margin-top:calc(var(--c-gap) + 2pt)}
+.t-wide .w-label{display:flex;align-items:center;font-size:.95em;line-height:1.2;font-weight:500;color:var(--c-muted);white-space:nowrap;margin-bottom:7pt;break-after:avoid}
+.t-wide .w-sec.div .w-label{border-bottom:.75pt solid var(--c-div);padding-bottom:6pt;margin-bottom:9pt}
+.t-wide .w-label .ic{margin-right:5pt;width:1.05em;height:1.05em}
+.t-wide .contacts{display:grid;column-gap:22pt;row-gap:3pt;justify-content:start;font-size:.9em;color:var(--c-muted);white-space:nowrap}
+.t-wide .contacts a{display:inline-flex;align-items:center;gap:5pt}
+.t-wide .contacts .ic{width:1.1em;height:1.1em}
+.t-wide .job+.job{margin-top:13pt}
+.t-wide .job h3{font-size:1.2em;line-height:1.25}
+.t-wide .meta{font-size:.8em;color:var(--c-muted);margin-top:2pt}
+.t-wide .grp{font-weight:var(--c-wb);margin-top:6pt}
+.t-wide ul,.t-wide ol{margin-top:4pt;padding-left:18pt}
+.t-wide .rows .r{display:flex;justify-content:space-between;gap:12pt}
+.t-wide .rows .r+.r{margin-top:4pt}
+.t-wide .rows .r .dates{color:var(--c-muted);white-space:nowrap}
+
 /* Aurora Sidebar */
 .t-side .cv-inner{padding:0;display:grid;grid-template-columns:var(--c-label) 1fr;min-height:297mm}
 .t-side .s-aside{grid-column:1;grid-row:1;padding:var(--c-pad-y) 18pt 24pt var(--c-pad-x);background:color-mix(in srgb,var(--c-base) 55%,transparent);border-right:.75pt solid var(--c-div)}
@@ -608,6 +629,7 @@ const BASE_D={font:'inter',hfont:'',wn:700,wh:600,wb:600,track:-.005,text:'#2021
 const TPL=(o)=>Object.assign(clone(BASE_D),clone(o));
 const TEMPLATES={
  aurora:{name:'Aurora',note:'Your main design: label column and a soft gradient.',ats:8,photo:true,design:TPL({})},
+ wide:{name:'Aurora Wide',note:'Aurora without the photo: section titles above a divider, text across the full page.',ats:9,photo:false,design:TPL({photo:0,photoPos:'none',gap:16})},
  side:{name:'Aurora Sidebar',note:'Same look with a left sidebar for contact, skills and languages.',ats:6,photo:true,sidebar:true,design:TPL({muted:'#545770',accent:'#3a3f8f',divider:'#20213e22',size:9.3,sum:13,photo:90,label:190,gap:14,padX:26,padY:30,contactCols:1})},
  spot:{name:'Aurora Spotlight',note:'Gradient header band, contact chips, single column.',ats:9,photo:true,design:TPL({text:'#1f2238',muted:'#53566b',accent:'#3d3a8c',divider:'#1f22382a',size:9.8,sum:13,photo:92,gap:18,padX:36,padY:34,grad:{base:'#ffffff',stops:[{color:'#ffd2b8',x:0,y:30,size:65,opacity:.75},{color:'#c4ecdd',x:45,y:0,size:55,opacity:.7},{color:'#d4ccff',x:100,y:35,size:70,opacity:.85}]}})},
  glass:{name:'Glass',note:'Frosted glass panels with light rims over a colourful background.',ats:7,photo:true,design:TPL({font:'inter',wn:700,wh:600,wb:600,track:-.01,text:'#1d1d1f',muted:'#56565e',accent:'#0a6cff',divider:'#0000001a',size:9.3,name:18,sum:13,photo:74,gap:6,padX:22,padY:16,glass:.34,grad:GRAD_PRESETS.Tahoe})},
@@ -616,7 +638,7 @@ const TEMPLATES={
  details:{name:'Details',note:'Square photo, icon headings and a right-hand Details column.',ats:6,photo:true,sidebar:true,design:TPL({font:'sourcesans',wn:600,wh:600,wb:700,track:0,text:'#1f1f1f',muted:'#a3a3a3',accent:'#1f1f1f',divider:'#e5e5e5',size:9.6,name:23,sum:10,photo:44,photoShape:'rounded',label:132,gap:16,padX:54,padY:34,gradOn:false,grad:GRAD_PRESETS.None})},
  ats:{name:'Simple ATS',note:'Plain single column. Safest for strict parsers.',ats:10,photo:false,design:TPL({font:'arial',wn:700,wh:700,wb:700,track:0,text:'#111111',muted:'#444444',accent:'#111111',divider:'#111111',size:10.2,sum:13,photo:0,photoPos:'none',gap:13,padX:46,padY:40,showIcons:false,gradOn:false,grad:GRAD_PRESETS.None})}
 };
-const TORDER=['aurora','side','spot','glass','classic','banner','details','ats'];
+const TORDER=['aurora','wide','side','spot','glass','classic','banner','details','ats'];
 
 /* section presets (Add section) */
 const PRESETS=[
@@ -749,7 +771,7 @@ function body(sec,d,T,ctx={}){
   return sec.items.map(it=>{
    const groups=it.groups.map(g=>(g.name.trim()?`<div class="grp">${esc(g.name)}</div>`:'')+(g.html?rt(g.html):'')).join('');
    const roleCo=[it.role,it.company].filter(x=>x&&x.trim()).map(esc).join(' - ');
-   if(T==='aurora'||(T==='side'&&!ctx.aside)){const meta=[dr(it),esc(it.location)].filter(Boolean).join(' | ');return `<div class="job"><div class="keep"><h3 class="hd">${roleCo}</h3>${meta?`<div class="meta dates">${meta}</div>`:''}</div>${groups}</div>`}
+   if(T==='aurora'||T==='wide'||(T==='side'&&!ctx.aside)){const meta=[dr(it),esc(it.location)].filter(Boolean).join(' | ');return `<div class="job"><div class="keep"><h3 class="hd">${roleCo}</h3>${meta?`<div class="meta dates">${meta}</div>`:''}</div>${groups}</div>`}
    if(T==='classic'){const co=[it.company,it.location].filter(x=>x&&x.trim()).map(esc).join(', ');return `<div class="job"><div class="jh keep"><h3 class="hd">${esc(it.role)}${co?`<span class="pp">|</span><span class="co">${co}</span>`:''}</h3><span class="dates">${dr(it).replace(' — ',' – ')}</span></div>${groups}</div>`}
    if(T==='banner')return `<div class="job"><div class="b-row keep"><span class="dm">${DM}</span><h3 class="hd">${roleCo}</h3><span class="lead"></span><span class="dates">${dr(it)}</span></div>${groups}</div>`;
    if(T==='details'){return `<div class="job"><div class="keep"><h3 class="hd">${roleCo}</h3>${dr(it)?`<div class="meta dates">${dr(it)}</div>`:''}</div>${groups}</div>`}
@@ -788,6 +810,13 @@ function renderCV(T=S.template,d=D(T),data=null){
   h+=`<header class="a-top ${d.photoPos==='right'?'right':''}"><div class="a-pcol">${avatar(d,T)}</div><div class="a-head"><h1>${name}</h1>${title?`<div class="a-role">${title}</div>`:''}${sum?`<div class="a-sum rt">${sum}</div>`:''}</div></header>`;
   if(vc.length)h+=`<section class="a-sec"><div class="a-label">${d.showIcons?ic(p.contactIcon):''}${esc(p.contactLabel)}</div><div class="a-body"><div class="contacts" style="grid-template-columns:repeat(${cols},auto)">${vc.map(c=>contactLink(c,d)).join('')}</div></div></section>`;
   vs.forEach((s,i)=>{h+=`<section class="a-sec ${i===0&&d.divider_on?'div':''}"><div class="a-label">${L(s)}</div><div class="a-body">${body(s,d,T)}</div></section>`});
+ }
+ else if(T==='wide'){
+  const cols=Math.max(1,Math.min(4,d.contactCols));const dv=d.divider_on?' div':'';
+  const lab=(icon,txt)=>`<div class="w-label hd">${d.showIcons?ic(icon):''}${txt}</div>`;
+  h+=`<header class="w-top"><h1>${name}</h1>${title?`<div class="w-role">${title}</div>`:''}${sum?`<div class="w-sum rt">${sum}</div>`:''}</header>`;
+  if(vc.length)h+=`<section class="w-sec${dv}">${lab(p.contactIcon,esc(p.contactLabel))}<div class="contacts" style="grid-template-columns:repeat(${cols},auto)">${vc.map(c=>contactLink(c,d)).join('')}</div></section>`;
+  vs.forEach(s=>{h+=`<section class="w-sec${dv}">${lab(s.icon,esc(s.label))}<div class="w-body">${body(s,d,T)}</div></section>`});
  }
  else if(T==='side'){
   const aside=vs.filter(s=>s.side),main=vs.filter(s=>!s.side);
@@ -1022,7 +1051,7 @@ function paneDesign(){
   <span class="hint">San Francisco shows on Apple devices only (Inter elsewhere) and Macs may save it in a format older ATS read poorly; pick Inter for the safest PDF. Calibri uses Carlito where Calibri isn't installed.</span>
   <div class="two">${rng('D.wn','Name weight',d.wn,100,900,100)}${rng('D.wh','Heading weight',d.wh,100,900,100)}${rng('D.wb','Bold text weight',d.wb,100,900,100)}${rng('D.track','Letter spacing',d.track,-.04,.06,.005,'em')}</div>
   <div class="two">${rng('D.size','Body size',d.size,8,12,.1,'pt')}${rng('D.name','Name size',d.name,12,34,.5,'pt')}</div>
-  ${['aurora'].includes(S.template)?rng('D.sum','Summary size',d.sum,9,18,.5,'pt'):''}</div></details>`;
+  ${['aurora','wide'].includes(S.template)?rng('D.sum','Summary size',d.sum,9,18,.5,'pt'):''}</div></details>`;
  h+=`<details class="group" data-k="colors" open><summary>${ui('palette')}Colors<span class="chev">${ui('chevron-right')}</span></summary><div class="gbody"><div class="colors">
   ${col('D.text','Text',d.text)}${col('D.muted','Secondary text',d.muted)}${col('D.accent',S.template==='classic'?'Links':'Accent',d.accent)}${col('D.divider','Lines',d.divider)}${S.template==='banner'?col('D.band','Title bands',d.band):''}</div>
   ${S.template==='glass'?rng('D.glass','Glass opacity',d.glass,.2,.85,.01,''):''}</div></details>`;
@@ -1046,10 +1075,12 @@ function paneLayout(){
   ${t.photo?`<label class="field"><span>Photo</span><select class="inp" data-bind="D.photoPos" data-rerender="1">${(['side','details'].includes(T)?[['left','Shown'],['none','Hidden']]:[['left','Left'],['right','Right'],['none','Hidden']]).map(([k,v])=>`<option value="${k}" ${k===d.photoPos?'selected':''}>${v}</option>`).join('')}</select></label>
    <label class="field"><span>Photo shape</span><select class="inp" data-bind="D.photoShape">${[['circle','Circle'],['rounded','Rounded square'],['square','Square']].map(([k,v])=>`<option value="${k}" ${k===d.photoShape?'selected':''}>${v}</option>`).join('')}</select></label>${rng('D.photo','Photo size',d.photo,30,140,1,'pt')}`:`<span class="hint">Photo not supported on this template.</span>`}
   ${T==='aurora'?`${rng('D.label','Label column width',d.label,70,170,1,'pt')}${rng('D.contactCols','Contact columns',d.contactCols,1,4,1,'')}`:''}
+  ${T==='wide'?rng('D.contactCols','Contact columns',d.contactCols,1,4,1,''):''}
   ${T==='side'?rng('D.label','Sidebar width',d.label,140,240,1,'pt'):''}${T==='details'?rng('D.label','Details column width',d.label,100,200,1,'pt'):''}
   ${rng('D.gap','Space between sections',d.gap,4,36,1,'pt')}${rng('D.padX','Side margins',d.padX,16,90,1,'pt')}${rng('D.padY','Top margin',d.padY,12,70,1,'pt')}
-  ${['aurora','side','spot','glass','details'].includes(T)?sw('D.showIcons','Show icons',d.showIcons):''}
+  ${['aurora','wide','side','spot','glass','details'].includes(T)?sw('D.showIcons','Show icons',d.showIcons):''}
   ${T==='aurora'?sw('D.divider_on','Divider line before first section',d.divider_on):''}
+  ${T==='wide'?sw('D.divider_on','Divider line under each section title',d.divider_on):''}
  </div></details>`;
  h+=`<details class="group" data-k="order" open><summary>${ui('list')}Section order &amp; visibility<span class="chev">${ui('chevron-right')}</span></summary><div class="gbody">
   ${S.sections.map((s,i)=>`<div class="item-h" style="border:1px solid var(--line);border-radius:9px;padding:4px 6px">${ui(s.icon)}<strong style="font-weight:500">${esc(s.label)}</strong>

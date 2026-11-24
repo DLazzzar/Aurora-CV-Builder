@@ -12,7 +12,7 @@ There is no account, no server and no upload. Your CV stays in your own browser.
 
 ## Features
 
-- **8 templates.** Aurora, Aurora Sidebar, Aurora Spotlight, Glass, Classic, Garamond Banner, Details and Simple ATS. The Templates tab previews each one with your content.
+- **9 templates.** Aurora, Aurora Wide, Aurora Sidebar, Aurora Spotlight, Glass, Classic, Garamond Banner, Details and Simple ATS. The Templates tab previews each one with your content.
 - **Rich text editing.** Bold, italic, underline, strikethrough, alignment, bullet and numbered lists, links, text colour and highlight.
 - **Flexible sections.** 18 section types, including experience, education, skills, languages, projects, certifications, courses, volunteering, awards, publications, hobbies and references. Sections can be reordered by drag and drop, hidden or renamed, and given one of 115 icons.
 - **Contacts and links.** Email, phone, location, LinkedIn, GitHub and website become clickable links automatically. Custom details such as nationality or a driving licence can be added too.
