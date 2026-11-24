@@ -12,11 +12,11 @@ There is no account, no server and no upload. Your CV stays in your own browser.
 
 ## Features
 
-- **9 templates.** Aurora, Aurora Wide, Aurora Sidebar, Aurora Spotlight, Glass, Classic, Garamond Banner, Details and Simple ATS. The Templates tab previews each one with your content.
+- **10 templates.** Aurora, Aurora Wide, Aurora Sidebar, Aurora Spotlight, Glass, Classic, Garamond Banner, Details, Jake's Resume and Simple ATS. The Templates tab previews each one with your content.
 - **Rich text editing.** Bold, italic, underline, strikethrough, alignment, bullet and numbered lists, links, text colour and highlight.
 - **Flexible sections.** 18 section types, including experience, education, skills, languages, projects, certifications, courses, volunteering, awards, publications, hobbies and references. Sections can be reordered by drag and drop, hidden or renamed, and given one of 115 icons.
 - **Contacts and links.** Email, phone, location, LinkedIn, GitHub and website become clickable links automatically. Custom details such as nationality or a driving licence can be added too.
-- **Design controls.** 21 fonts (including Inter, Calibri, Garamond, Arial, Times New Roman, Roboto and Source Sans) with weights from 100 to 900. You also set sizes, colours and a background gradient with any number of colour glows. Each template keeps its own settings.
+- **Design controls.** 22 fonts (including Inter, Calibri, Garamond, Arial, Times New Roman, Roboto, Source Sans and Computer Modern) with weights from 100 to 900. You also set sizes, colours and a background gradient with any number of colour glows. Each template keeps its own settings.
 - **Layout controls.** Photo size, shape and position, spacing, margins, column widths, icons, and which sections sit in a side column.
 - **ATS check.** A live score from 15 checks, keyword matching against a pasted job ad, and the plain text a parser would read.
 - **Import.** Reads an existing PDF or Word (.docx) CV and fills in the fields, including links, bold text and the photo where possible.
@@ -103,7 +103,7 @@ README.md    This file
 ```
 
 External resources loaded at runtime:
-- Static fonts from [Fontsource](https://fontsource.org) via jsDelivr
+- Static fonts from [Fontsource](https://fontsource.org) and the [computer-modern](https://github.com/stevenpetryk/computer-modern) package via jsDelivr
 - [pdf.js](https://mozilla.github.io/pdf.js/) and [mammoth.js](https://github.com/mwilliamson/mammoth.js) for importing PDF and Word CVs (loaded only when you use Import)
 - Icons from [Lucide](https://lucide.dev), built into the file
 
@@ -145,11 +145,13 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 ```
 
-**Fonts** (loaded at runtime from [Fontsource](https://fontsource.org) via jsDelivr, not stored in this repository)
-- SIL Open Font License 1.1: Inter, Carlito, Source Sans 3, Lato, Open Sans, IBM Plex Sans, DM Sans, Manrope, Figtree, Nunito Sans, EB Garamond, Noto Serif, Source Serif 4, Merriweather, Libre Baskerville, Crimson Pro, PT Serif
+**Fonts** (loaded at runtime from [Fontsource](https://fontsource.org) and the computer-modern package via jsDelivr, not stored in this repository)
+- SIL Open Font License 1.1: CMU Serif (Computer Modern), Inter, Carlito, Source Sans 3, Lato, Open Sans, IBM Plex Sans, DM Sans, Manrope, Figtree, Nunito Sans, EB Garamond, Noto Serif, Source Serif 4, Merriweather, Libre Baskerville, Crimson Pro, PT Serif
 - Apache License 2.0: Arimo, Tinos, Roboto
 
 Font names belong to their respective owners. Calibri, Arial, Times New Roman and San Francisco are trademarks of their owners; this project only refers to them by name and uses open, metric-compatible alternatives or the fonts already installed on the user's system.
+
+**Jake's Resume template**: the layout follows [Jake's Resume](https://github.com/jakegut/resume) by Jake Gutierrez, MIT License.
 
 **Libraries loaded only when importing a CV**
 - [pdf.js](https://github.com/mozilla/pdf.js) by Mozilla, Apache License 2.0

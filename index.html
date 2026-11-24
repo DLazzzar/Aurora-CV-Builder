@@ -310,6 +310,32 @@ textarea.inp{resize:vertical;min-height:62px;line-height:1.45}
 .t-wide .rows .r+.r{margin-top:4pt}
 .t-wide .rows .r .dates{color:var(--c-muted);white-space:nowrap}
 
+/* Jake's Resume (after Jake Gutierrez's MIT-licensed LaTeX template): Computer Modern, small-caps titles over a rule */
+.t-jake{line-height:1.2}
+.t-jake .cv-bg{display:none}
+.t-jake .j-head{text-align:center}
+.t-jake h1{font-size:var(--c-name);line-height:1.05;letter-spacing:0}
+.t-jake .sc{font-size:.8em}
+.t-jake .j-role{margin-top:3pt}
+.t-jake .j-contact{font-size:.91em;margin-top:5pt}
+.t-jake .j-contact a.lk{color:var(--c-accent);text-decoration:underline;text-decoration-thickness:.4pt;text-underline-offset:1.6pt}
+.t-jake .j-contact .pp{margin:0 2pt}
+.t-jake h2{font-family:var(--c-hfont);font-weight:var(--c-wh);font-size:1.09em;letter-spacing:0;border-bottom:.5pt solid var(--c-div);padding-bottom:1.5pt;margin:var(--c-gap) 0 4pt;break-after:avoid}
+.t-jake .j-in{padding-left:10.8pt}
+.t-jake .j-in>.rt,.t-jake .skl p,.t-jake .langs{font-size:.91em}
+.t-jake .skl p+p{margin-top:1.5pt}
+.t-jake .jh{display:flex;justify-content:space-between;align-items:baseline;gap:12pt}
+.t-jake .jh h3,.t-jake .jh b{font-size:1em;font-weight:var(--c-wb);font-family:var(--c-font)}
+.t-jake .jh .dates{white-space:nowrap}
+.t-jake .js{display:flex;justify-content:space-between;gap:12pt;font-size:.91em;font-style:italic;margin-top:.5pt}
+.t-jake .js span:last-child{white-space:nowrap}
+.t-jake .job+.job,.t-jake .rows .r+.r{margin-top:6pt}
+.t-jake .grp{font-size:.91em;font-weight:var(--c-wb);margin-top:3pt}
+.t-jake ul,.t-jake ol{margin-top:2pt;padding-left:1.35em}
+.t-jake li{margin-top:.6pt}
+.t-jake .job .rt{font-size:.91em}
+.t-jake li::marker{font-size:.8em}
+
 /* Aurora Sidebar */
 .t-side .cv-inner{padding:0;display:grid;grid-template-columns:var(--c-label) 1fr;min-height:297mm}
 .t-side .s-aside{grid-column:1;grid-row:1;padding:var(--c-pad-y) 18pt 24pt var(--c-pad-x);background:color-mix(in srgb,var(--c-base) 55%,transparent);border-right:.75pt solid var(--c-div)}
@@ -611,6 +637,7 @@ const FONTS={
  merriweather:{name:'Merriweather',css:'"Merriweather",Georgia,serif',gf:'Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,400',kind:'Serif'},
  baskerville:{name:'Libre Baskerville',css:'"Libre Baskerville",Georgia,serif',gf:'Libre Baskerville:ital,wght@0,400;0,700;1,400',kind:'Serif'},
  crimson:{name:'Crimson Pro',css:'"Crimson Pro",Georgia,serif',gf:'Crimson Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400',kind:'Serif'},
+ cmu:{name:'Computer Modern',css:'"CMU Serif",serif',gf:'',kind:'Serif (LaTeX, CMU Serif)'},
  ptserif:{name:'PT Serif',css:'"PT Serif",Georgia,serif',gf:'PT Serif:ital,wght@0,400;0,700;1,400',kind:'Serif'}
 };
 
@@ -636,12 +663,13 @@ const TEMPLATES={
  classic:{name:'Classic',note:'Serif name, spaced capital headings and hairline rules.',ats:10,photo:false,design:TPL({font:'arial',hfont:'dejavu',wn:400,wh:700,wb:700,track:0,text:'#222222',muted:'#5c5c5c',accent:'#2b4a8b',divider:'#c9c9c9',size:9.3,name:25,sum:10,photo:0,photoPos:'none',gap:13,padX:62,padY:32,showIcons:false,gradOn:false,grad:GRAD_PRESETS.None})},
  banner:{name:'Garamond Banner',note:'Garamond type, grey title bands, diamond markers and dotted leaders.',ats:9,photo:false,design:TPL({font:'garamond',wn:700,wh:600,wb:700,track:0,text:'#1a1a1a',muted:'#333333',accent:'#1a1a1a',divider:'#1a1a1a',band:'#ececec',size:9.8,name:21,sum:10,photo:0,photoPos:'none',gap:12,padX:42,padY:30,showIcons:false,gradOn:false,grad:GRAD_PRESETS.None})},
  details:{name:'Details',note:'Square photo, icon headings and a right-hand Details column.',ats:6,photo:true,sidebar:true,design:TPL({font:'sourcesans',wn:600,wh:600,wb:700,track:0,text:'#1f1f1f',muted:'#a3a3a3',accent:'#1f1f1f',divider:'#e5e5e5',size:9.6,name:23,sum:10,photo:44,photoShape:'rounded',label:132,gap:16,padX:54,padY:34,gradOn:false,grad:GRAD_PRESETS.None})},
+ jake:{name:"Jake's Resume",note:'The classic LaTeX resume: Computer Modern, small-caps section titles over a rule.',ats:10,photo:false,design:TPL({font:'cmu',hfont:'',wn:700,wh:400,wb:700,track:0,text:'#000000',muted:'#000000',accent:'#000000',divider:'#000000',size:11,name:24.9,sum:10,photo:0,photoPos:'none',gap:11,padX:36,padY:36,showIcons:false,gradOn:false,grad:GRAD_PRESETS.None})},
  ats:{name:'Simple ATS',note:'Plain single column. Safest for strict parsers.',ats:10,photo:false,design:TPL({font:'arial',wn:700,wh:700,wb:700,track:0,text:'#111111',muted:'#444444',accent:'#111111',divider:'#111111',size:10.2,sum:13,photo:0,photoPos:'none',gap:13,padX:46,padY:40,showIcons:false,gradOn:false,grad:GRAD_PRESETS.None})}
 };
 const USES={
- colors:{aurora:['text','muted','accent','divider'],wide:['text','muted','accent','divider'],side:['text','muted','accent','divider'],spot:['text','muted','accent','divider'],glass:['text','muted','accent'],classic:['text','muted','accent','divider'],banner:['text','band'],details:['text','muted','accent'],ats:['text','muted','accent','divider']},
+ colors:{aurora:['text','muted','accent','divider'],wide:['text','muted','accent','divider'],side:['text','muted','accent','divider'],spot:['text','muted','accent','divider'],glass:['text','muted','accent'],classic:['text','muted','accent','divider'],jake:['text','accent','divider'],banner:['text','band'],details:['text','muted','accent'],ats:['text','muted','accent','divider']},
  grad:['aurora','wide','side','spot','glass'],sum:['aurora','wide','side','spot','glass']};
-const TORDER=['aurora','wide','side','spot','glass','classic','banner','details','ats'];
+const TORDER=['aurora','wide','side','spot','glass','classic','banner','details','jake','ats'];
 
 /* section presets (Add section) */
 const PRESETS=[
@@ -776,24 +804,27 @@ function body(sec,d,T,ctx={}){
    const roleCo=[it.role,it.company].filter(x=>x&&x.trim()).map(esc).join(' - ');
    if(T==='aurora'||T==='wide'||(T==='side'&&!ctx.aside)){const meta=[dr(it),esc(it.location)].filter(Boolean).join(' | ');return `<div class="job"><div class="keep"><h3 class="hd">${roleCo}</h3>${meta?`<div class="meta dates">${meta}</div>`:''}</div>${groups}</div>`}
    if(T==='classic'){const co=[it.company,it.location].filter(x=>x&&x.trim()).map(esc).join(', ');return `<div class="job"><div class="jh keep"><h3 class="hd">${esc(it.role)}${co?`<span class="pp">|</span><span class="co">${co}</span>`:''}</h3><span class="dates">${dr(it).replace(' — ',' – ')}</span></div>${groups}</div>`}
+   if(T==='jake'){const co=esc(it.company||''),lo=esc(it.location||'');return `<div class="job"><div class="keep"><div class="jh"><h3 class="hd">${esc(it.role)}</h3><span class="dates">${dr(it).replace(' — ',' – ')}</span></div>${co||lo?`<div class="js"><span>${co}</span><span>${lo}</span></div>`:''}</div>${groups}</div>`}
    if(T==='banner')return `<div class="job"><div class="b-row keep"><span class="dm">${DM}</span><h3 class="hd">${roleCo}</h3><span class="lead"></span><span class="dates">${dr(it)}</span></div>${groups}</div>`;
    if(T==='details'){return `<div class="job"><div class="keep"><h3 class="hd">${roleCo}</h3>${dr(it)?`<div class="meta dates">${dr(it)}</div>`:''}</div>${groups}</div>`}
    const meta=[esc(it.company),esc(it.location)].filter(Boolean).join(T==='ats'?' | ':' · ');
    return `<div class="job"><div class="keep"><div class="jh"><h3 class="hd">${esc(it.role)}</h3><span class="dates">${dr(it)}</span></div>${meta?`<div class="meta">${meta}</div>`:''}</div>${groups}</div>`;
  }).join('')}
  if(sec.type==='skills'){
+  if(T==='jake')return `<div class="skl">${sec.items.map(r=>`<p>${r.label.trim()?`<b>${esc(r.label)}</b>: `:''}${r.value}</p>`).join('')}</div>`;
   if(['spot','glass','classic'].includes(T))return `<div class="skl">${sec.items.map(r=>r.label.trim()?`<b>${esc(r.label)}</b><span>${r.value}</span>`:`<span style="grid-column:1/-1">${r.value}</span>`).join('')}</div>`;
   return `<div class="skl">${sec.items.map(r=>`<p>${r.label.trim()?`<b>${esc(r.label)}:</b> `:''}${r.value}</p>`).join('')}</div>`;
  }
  if(sec.type==='education'){
   if(T==='banner')return `<div class="rows">${sec.items.map(r=>`<div class="b-row keep"><span class="dm">${DM}</span><span class="t">${esc(r.title)}${r.note.trim()?` - ${esc(r.note)}`:''}</span><span class="lead"></span><span class="dates">${esc(r.dates)}</span></div>`).join('')}</div>`;
+  if(T==='jake')return `<div class="rows">${sec.items.map(r=>`<div class="r keep"><div class="jh"><b>${esc(r.title)}</b></div>${r.note.trim()||r.dates?`<div class="js"><span>${esc(r.note)}</span><span>${esc(r.dates)}</span></div>`:''}</div>`).join('')}</div>`;
   if(T==='classic')return `<div class="rows">${sec.items.map(r=>`<div class="r keep"><span><b>${esc(r.title)}</b>${r.note.trim()?`<span class="pp">|</span><span class="co">${esc(r.note)}</span>`:''}</span><span class="dates">${esc(r.dates)}</span></div>`).join('')}</div>`;
   if(T==='details'||(T==='side'&&ctx.aside))return `<div class="rows">${sec.items.map(r=>`<div class="r keep"><b>${esc(r.title)}</b>${r.note.trim()?` <span class="muted">- ${esc(r.note)}</span>`:''}${r.dates?`<span class="dates">${esc(r.dates)}</span>`:''}</div>`).join('')}</div>`;
   return `<div class="rows">${sec.items.map(r=>`<div class="r keep"><span><b>${esc(r.title)}</b>${r.note.trim()?` <span class="muted">- ${esc(r.note)}</span>`:''}</span><span class="dates">${esc(r.dates)}</span></div>`).join('')}</div>`;
  }
  if(sec.type==='languages'){
   const parts=sec.items.filter(l=>l.name.trim()).map(l=>`<span>${esc(l.name)}${l.level.trim()?` (${esc(l.level)})`:''}</span>`);
-  return ctx.aside?`<div class="langs-v">${parts.join('')}</div>`:`<div>${parts.join(' | ')}</div>`;
+  return ctx.aside?`<div class="langs-v">${parts.join('')}</div>`:`<div class="langs">${parts.join(' | ')}</div>`;
  }
  if(sec.type==='references'){
   return `<div class="rows">${sec.items.map(r=>`<div class="r keep" style="display:block"><b>${esc(r.name)}</b>${r.role.trim()?`<span class="muted"> - ${esc(r.role)}</span>`:''}${r.contact.trim()?`<div class="muted">${esc(r.contact)}</div>`:''}</div>`).join('')}</div>`;
@@ -835,6 +866,14 @@ function renderCV(T=S.template,d=D(T),data=null){
   h+=`<header class="glass g-head"><div class="g-top ${d.photoPos==='right'?'right':''}">${avatar(d,T)}<div><h1>${name}</h1>${title?`<div class="g-role">${title}</div>`:''}${sum?`<div class="g-sum rt">${sum}</div>`:''}</div></div>${vc.length?`<div class="g-chips">${vc.map(c=>contactLink(c,d)).join('')}</div>`:''}</header>`;
   const card=s=>`<section class="glass g-card"><div class="g-h hd">${d.showIcons?`<span class="g-ic">${ic(s.icon)}</span>`:''}${esc(s.label)}</div>${body(s,d,T)}</section>`;
   vs.forEach(s=>{h+=card(s)}); // one card per row: side-by-side cards scramble reading order in some ATS parsers
+ }
+ else if(T==='jake'){
+  // small caps drawn with real capitals (smaller), so every PDF reader extracts the letters
+  const sc=t=>esc(t).replace(/(&[a-z]+;)|(\p{Ll}+)/gu,(m,ent,low)=>ent?ent:`<span class="sc">${low.toUpperCase()}</span>`);
+  const ct=vc.map(c=>aLink(c,esc(LINKISH.includes(c.type)?linkText(c):(c.type==='info'&&cLab(c)?cLab(c)+': '+c.text:c.text))).replace('<a ',(LINKISH.includes(c.type)||c.type==='email')?'<a class="lk" ':'<a ')).join('&nbsp;<span class="pp">|</span> ');
+  h+=`<header class="j-head"><h1>${sc(p.name)}</h1>${title?`<div class="j-role">${title}</div>`:''}${ct?`<div class="j-contact">${ct}</div>`:''}</header>`;
+  if(sum)h+=`<h2 class="hd">${sc(p.summaryLabel||'Summary')}</h2><div class="j-in"><div class="rt">${sum}</div></div>`;
+  vs.forEach(s=>{h+=`<h2 class="hd">${sc(s.label)}</h2><div class="j-in">${body(s,d,T)}</div>`});
  }
  else if(T==='classic'){
   const ct=vc.map(c=>aLink(c,esc(LINKISH.includes(c.type)?linkText(c):(c.type==='info'&&cLab(c)?cLab(c)+': '+c.text:c.text))).replace('<a ',(LINKISH.includes(c.type)||c.type==='email')?'<a class="lk" ':'<a ')).join(' <span class="pp">|</span> ');
@@ -1056,7 +1095,7 @@ function paneDesign(){
   <div class="two">${rng('D.size','Body size',d.size,8,12,.1,'pt')}${rng('D.name','Name size',d.name,12,34,.5,'pt')}</div>
   ${USES.sum.includes(S.template)?rng('D.sum','Summary size',d.sum,9,18,.5,'pt'):''}</div></details>`;
  h+=`<details class="group" data-k="colors" open><summary>${ui('palette')}Colors<span class="chev">${ui('chevron-right')}</span></summary><div class="gbody"><div class="colors">
-  ${(()=>{const u=USES.colors[S.template]||['text','muted','accent','divider'];const L={text:'Text',muted:'Secondary text',accent:S.template==='classic'?'Links':['aurora','wide','details'].includes(S.template)?'Titles':'Accent',divider:'Lines',band:'Title bands'};return u.map(k=>col('D.'+k,L[k],d[k])).join('')})()}</div>
+  ${(()=>{const u=USES.colors[S.template]||['text','muted','accent','divider'];const L={text:'Text',muted:'Secondary text',accent:['classic','jake'].includes(S.template)?'Links':['aurora','wide','details'].includes(S.template)?'Titles':'Accent',divider:'Lines',band:'Title bands'};return u.map(k=>col('D.'+k,L[k],d[k])).join('')})()}</div>
   ${S.template==='glass'?rng('D.glass','Glass opacity',d.glass,.2,.85,.01,''):''}</div></details>`;
  const g=d.grad;
  if(!USES.grad.includes(S.template))h+=`<div class="hint" style="margin:-4px 0 12px">${t.name} uses a plain white page, so it has no background gradient.</div>`;
@@ -1702,7 +1741,10 @@ function parseCV(raw){
 }
 
 function parseJobs(objs,sec){
- const lines=objs.map(o=>typeof o==='string'?o:o.t);const geo=objs.some(o=>o&&o.end!=null);const boldAt=i=>!!(objs[i]&&objs[i].bold);
+ const lines=objs.map(o=>typeof o==='string'?o:o.t);
+ const gx=objs.filter(o=>o&&o.x!=null),minX=gx.length?Math.min(...gx.map(o=>o.x)):0,maxE=gx.length?Math.max(...gx.map(o=>o.end||0)):0;
+ const rightSide=i=>{const o=objs[i];return !!(o&&o.x!=null&&maxE>minX&&o.x-minX>(maxE-minX)*.55)}; // a short text on the far right (location column)
+ const geo=objs.some(o=>o&&o.end!=null);const boldAt=i=>!!(objs[i]&&objs[i].bold);
  const isBullet=l=>/^[•●▪◦\-–*·➢►■□✓✔]\s*/.test(l);const strip=l=>l.replace(/^[•●▪◦\-–*·➢►■□✓✔]\s*/,'');
  const SEP=/\s+[-–—|@·•]\s+|\s+at\s+|\s*[|·•]\s*|,\s+/;
  const dateOf=l=>{const m=l.match(DATE);if(m)return {m,s:m[1],e:m[2]};const o=l.trim().match(DATE1);return o?{m:o,s:o[1],e:'Present'}:null};
@@ -1740,7 +1782,8 @@ function parseJobs(objs,sec){
   if(!job){pending.push(l);return}
   if(isBullet(l)){if(!grp){grp={id:uid(),name:'',bullets:''};job.groups.push(grp)}grp.bullets+=(grp.bullets?'\n':'')+strip(l);return}
   if(/:$/.test(l)&&l.length<60||geo&&boldAt(ix)&&l.length<90&&!/[.!?;]$/.test(l)&&lines[ix+1]&&!isHeadLine(lines[ix+1])){grp={id:uid(),name:l,bullets:''};job.groups.push(grp);return}
-  if(!job.groups.length&&!job.company&&l.length<60&&!/[.!?]$/.test(l)){const p=l.split(/\s*[|·•]\s*|\s+[-–—]\s+/);job.company=p[0];if(p[1]&&!job.location)job.location=p.slice(1).join(', ');return}
+  if(!job.groups.length&&!job.location&&rightSide(ix)&&l.length<40&&!/[.!?;]$/.test(l)){job.location=l;return}
+  if(!job.groups.length&&!job.company&&l.length<60&&(!/[.!?]$/.test(l)||/\b(d\.o\.o|a\.d|inc|ltd|llc|co|corp|gmbh|s\.r\.l|plc|ag|bv)\.$/i.test(l))){const p=l.split(/\s*[|·•]\s*|\s+[-–—]\s+/);job.company=p[0];if(p[1]&&!job.location)job.location=p.slice(1).join(', ');return}
   if(!job.groups.length&&!job.location&&/^[\p{L} ,.-]+$/u.test(l)&&l.length<40&&/,/.test(l)){job.location=l;return}
   if(!geo&&grp&&grp.bullets){const last=grp.bullets.split('\n').pop();if(/^[\p{Ll}(]/u.test(l)||!/[.!?;]$/.test(last)&&last.length>45){grp.bullets=grp.bullets.replace(/[^\n]*$/,x=>joinTxt(x,l));return}}
   if(!grp){grp={id:uid(),name:'',bullets:''};job.groups.push(grp)}
@@ -1765,13 +1808,17 @@ function applyBold(){
 
 
 /* ---------- CV fonts: static (non-variable) files so Chrome's "Save as PDF" embeds real TrueType text ---------- */
-const FONT_MANIFEST={"inter":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"calibri":[[400,0],[700,0],[400,1],[700,1]],"arial":[[400,0],[500,0],[600,0],[700,0],[400,1],[700,1]],"helv":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"sourcesans":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"lato":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"opensans":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"plex":[[300,0],[400,0],[500,0],[600,0],[700,0],[400,1],[700,1]],"dmsans":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"manrope":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0]],"figtree":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"nunito":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"garamond":[[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"times":[[400,0],[700,0],[400,1],[700,1]],"dejavu":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"sourceserif":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"merriweather":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"baskerville":[[400,0],[500,0],[600,0],[700,0],[400,1],[700,1]],"crimson":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"ptserif":[[400,0],[700,0],[400,1],[700,1]]};   // faces shipped next to the published page (fonts/*.ttf)
-const FONT_SOURCES={"inter":["inter","5.3.0",[[300,0],[400,0],[400,1],[500,0],[600,0],[700,0],[700,1],[800,0]]],"calibri":["carlito","5.3.0",[[400,0],[400,1],[700,0],[700,1]]],"arial":["arimo","5.3.0",[[400,0],[400,1],[500,0],[600,0],[700,0],[700,1]]],"helv":["roboto","5.3.0",[[300,0],[400,0],[400,1],[500,0],[600,0],[700,0],[700,1],[800,0]]],"sourcesans":["source-sans-3","5.3.1",[[300,0],[400,0],[400,1],[500,0],[600,0],[700,0],[700,1],[800,0]]],"lato":["lato","5.3.0",[[300,0],[400,0],[400,1],[700,0],[700,1]]],"opensans":["open-sans","5.3.0",[[300,0],[400,0],[400,1],[500,0],[600,0],[700,0],[700,1],[800,0]]],"plex":["ibm-plex-sans","5.3.0",[[300,0],[400,0],[400,1],[500,0],[600,0],[700,0],[700,1]]],"dmsans":["dm-sans","5.3.0",[[300,0],[400,0],[400,1],[500,0],[600,0],[700,0],[700,1],[800,0]]],"manrope":["manrope","5.3.0",[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0]]],"figtree":["figtree","5.3.0",[[300,0],[400,0],[400,1],[500,0],[600,0],[700,0],[700,1],[800,0]]],"nunito":["nunito-sans","5.3.0",[[300,0],[400,0],[400,1],[500,0],[600,0],[700,0],[700,1],[800,0]]],"garamond":["eb-garamond","5.3.0",[[400,0],[400,1],[500,0],[600,0],[700,0],[700,1],[800,0]]],"times":["tinos","5.3.0",[[400,0],[400,1],[700,0],[700,1]]],"dejavu":["noto-serif","5.3.0",[[300,0],[400,0],[400,1],[500,0],[600,0],[700,0],[700,1],[800,0]]],"sourceserif":["source-serif-4","5.3.1",[[300,0],[400,0],[400,1],[500,0],[600,0],[700,0],[700,1],[800,0]]],"merriweather":["merriweather","5.3.0",[[300,0],[400,0],[400,1],[500,0],[600,0],[700,0],[700,1],[800,0]]],"baskerville":["libre-baskerville","5.3.0",[[400,0],[400,1],[500,0],[600,0],[700,0],[700,1]]],"crimson":["crimson-pro","5.3.0",[[300,0],[400,0],[400,1],[500,0],[600,0],[700,0],[700,1],[800,0]]],"ptserif":["pt-serif","5.3.0",[[400,0],[400,1],[700,0],[700,1]]]};      // the same families as static files from Fontsource (used by the single-file version)
+const FONT_MANIFEST={"cmu":[[400,0],[700,0],[400,1],[700,1]],"inter":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"calibri":[[400,0],[700,0],[400,1],[700,1]],"arial":[[400,0],[500,0],[600,0],[700,0],[400,1],[700,1]],"helv":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"sourcesans":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"lato":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"opensans":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"plex":[[300,0],[400,0],[500,0],[600,0],[700,0],[400,1],[700,1]],"dmsans":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"manrope":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0]],"figtree":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"nunito":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"garamond":[[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"times":[[400,0],[700,0],[400,1],[700,1]],"dejavu":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"sourceserif":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"merriweather":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"baskerville":[[400,0],[500,0],[600,0],[700,0],[400,1],[700,1]],"crimson":[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0],[400,1],[700,1]],"ptserif":[[400,0],[700,0],[400,1],[700,1]]};   // faces shipped next to the published page (fonts/*.ttf)
+const FONT_SOURCES={"cmu":["@cmu","0.1.3",[[400,0],[400,1],[700,0],[700,1]]],"inter":["inter","5.3.0",[[300,0],[400,0],[400,1],[500,0],[600,0],[700,0],[700,1],[800,0]]],"calibri":["carlito","5.3.0",[[400,0],[400,1],[700,0],[700,1]]],"arial":["arimo","5.3.0",[[400,0],[400,1],[500,0],[600,0],[700,0],[700,1]]],"helv":["roboto","5.3.0",[[300,0],[400,0],[400,1],[500,0],[600,0],[700,0],[700,1],[800,0]]],"sourcesans":["source-sans-3","5.3.1",[[300,0],[400,0],[400,1],[500,0],[600,0],[700,0],[700,1],[800,0]]],"lato":["lato","5.3.0",[[300,0],[400,0],[400,1],[700,0],[700,1]]],"opensans":["open-sans","5.3.0",[[300,0],[400,0],[400,1],[500,0],[600,0],[700,0],[700,1],[800,0]]],"plex":["ibm-plex-sans","5.3.0",[[300,0],[400,0],[400,1],[500,0],[600,0],[700,0],[700,1]]],"dmsans":["dm-sans","5.3.0",[[300,0],[400,0],[400,1],[500,0],[600,0],[700,0],[700,1],[800,0]]],"manrope":["manrope","5.3.0",[[300,0],[400,0],[500,0],[600,0],[700,0],[800,0]]],"figtree":["figtree","5.3.0",[[300,0],[400,0],[400,1],[500,0],[600,0],[700,0],[700,1],[800,0]]],"nunito":["nunito-sans","5.3.0",[[300,0],[400,0],[400,1],[500,0],[600,0],[700,0],[700,1],[800,0]]],"garamond":["eb-garamond","5.3.0",[[400,0],[400,1],[500,0],[600,0],[700,0],[700,1],[800,0]]],"times":["tinos","5.3.0",[[400,0],[400,1],[700,0],[700,1]]],"dejavu":["noto-serif","5.3.0",[[300,0],[400,0],[400,1],[500,0],[600,0],[700,0],[700,1],[800,0]]],"sourceserif":["source-serif-4","5.3.1",[[300,0],[400,0],[400,1],[500,0],[600,0],[700,0],[700,1],[800,0]]],"merriweather":["merriweather","5.3.0",[[300,0],[400,0],[400,1],[500,0],[600,0],[700,0],[700,1],[800,0]]],"baskerville":["libre-baskerville","5.3.0",[[400,0],[400,1],[500,0],[600,0],[700,0],[700,1]]],"crimson":["crimson-pro","5.3.0",[[300,0],[400,0],[400,1],[500,0],[600,0],[700,0],[700,1],[800,0]]],"ptserif":["pt-serif","5.3.0",[[400,0],[400,1],[700,0],[700,1]]]};      // the same families as static files from Fontsource (used by the single-file version)
 const isFileUrl=location.protocol==='file:';
 const UR_LATIN='U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2190-2199,U+2212,U+2215,U+FEFF,U+FFFD';
 const UR_EXT='U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF';
 const fkey=k=>k==='sf'?'inter':(FONT_SOURCES[k]?k:'inter');
-const SERIF=new Set(['garamond','times','dejavu','sourceserif','merriweather','baskerville','crimson','ptserif']);
+// where each static face lives online: Fontsource (split latin / latin-ext) or the computer-modern package (one file)
+function fontUrls(key,w,i){const [pkg,ver]=FONT_SOURCES[key];
+ if(pkg==='@cmu')return [[`https://cdn.jsdelivr.net/npm/computer-modern@${ver}/fonts/cmu-serif-${w>=600?700:500}-${i?'italic':'roman'}.woff2`,'']];
+ const base=`https://cdn.jsdelivr.net/npm/@fontsource/${pkg}@${ver}/files/${pkg}`;return [[`${base}-latin-${w}-${i?'italic':'normal'}.woff2`,UR_LATIN],[`${base}-latin-ext-${w}-${i?'italic':'normal'}.woff2`,UR_EXT]]}
+const SERIF=new Set(['cmu','garamond','times','dejavu','sourceserif','merriweather','baskerville','crimson','ptserif']);
 function famCss(k){
  if(k==='sf')return '-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","CVX-inter",sans-serif';
  if(k==='calibri')return 'Calibri,"CVX-calibri","Segoe UI",Arial,sans-serif';
@@ -1800,9 +1847,8 @@ function ensureFont(k,full=true){
     const name=`${key}-${w}${i?'i':''}`;
     tasks.push((async()=>{try{const buf=fontBuf[name]||(fontBuf[name]=await (await fetch('fonts/'+name+'.ttf')).arrayBuffer());const ff=new FontFace('CVX-'+key,buf.slice(0),desc);await ff.load();document.fonts.add(ff)}catch(_){}})());
    }else{
-    const [pkg,ver]=FONT_SOURCES[key];const base=`https://cdn.jsdelivr.net/npm/@fontsource/${pkg}@${ver}/files/${pkg}`;
-    for(const [sub,ur] of [['latin',UR_LATIN],['latin-ext',UR_EXT]]){
-     const ff=new FontFace('CVX-'+key,`url(${base}-${sub}-${w}-${i?'italic':'normal'}.woff2) format("woff2")`,Object.assign({unicodeRange:ur},desc));
+    for(const [u,ur] of fontUrls(key,w,i)){
+     const ff=new FontFace('CVX-'+key,`url(${u}) format("woff2")`,ur?Object.assign({unicodeRange:ur},desc):desc);
      document.fonts.add(ff);tasks.push(ff.load().catch(()=>{}));
     }
    }
@@ -1821,7 +1867,7 @@ async function printDoc(){
  let faces='';
  for(const k of keys){
   if(localFonts){for(const [w,i] of FONT_MANIFEST[k]){const b=fontBuf[`${k}-${w}${i?'i':''}`];if(b)faces+=`@font-face{font-family:"CVX-${k}";font-weight:${w};font-style:${i?'italic':'normal'};src:url(data:font/ttf;base64,${b64(b)}) format("truetype")}`}}
-  else{const [pkg,ver,list]=FONT_SOURCES[k];for(const [w,i] of list)for(const [sub,ur] of [['latin',UR_LATIN],['latin-ext',UR_EXT]])faces+=`@font-face{font-family:"CVX-${k}";font-weight:${w};font-style:${i?'italic':'normal'};unicode-range:${ur};src:url(https://cdn.jsdelivr.net/npm/@fontsource/${pkg}@${ver}/files/${pkg}-${sub}-${w}-${i?'italic':'normal'}.woff2) format("woff2")}`}
+  else{for(const [w,i] of FONT_SOURCES[k][2])for(const [u,ur] of fontUrls(k,w,i))faces+=`@font-face{font-family:"CVX-${k}";font-weight:${w};font-style:${i?'italic':'normal'};${ur?`unicode-range:${ur};`:''}src:url(${u}) format("woff2")}`}
  }
  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${esc(S.profile.name)} - CV</title><style>${faces}html,body{margin:0;background:#fff}${$('#cv-css').textContent}</style></head><body>${renderCV(S.template,Object.assign({},D(),{__bake:true}))}<script>document.fonts&&document.fonts.ready.then(function(){setTimeout(function(){window.print()},400)})<\/script></body></html>`;
 }
