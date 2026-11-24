@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Aurora CV Builder</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='a' cx='15%25' cy='10%25' r='75%25'%3E%3Cstop offset='0' stop-color='%23ffd9c2'/%3E%3Cstop offset='1' stop-color='%23ffd9c2' stop-opacity='0'/%3E%3C/radialGradient%3E%3CradialGradient id='b' cx='15%25' cy='90%25' r='70%25'%3E%3Cstop offset='0' stop-color='%23cdeee0'/%3E%3Cstop offset='1' stop-color='%23cdeee0' stop-opacity='0'/%3E%3C/radialGradient%3E%3CradialGradient id='c' cx='90%25' cy='45%25' r='75%25'%3E%3Cstop offset='0' stop-color='%23d7d2ff'/%3E%3Cstop offset='1' stop-color='%23d7d2ff' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='%23f1ecf2'/%3E%3Crect width='64' height='64' rx='16' fill='url(%23c)'/%3E%3Crect width='64' height='64' rx='16' fill='url(%23b)'/%3E%3Crect width='64' height='64' rx='16' fill='url(%23a)'/%3E%3Crect x='.75' y='.75' width='62.5' height='62.5' rx='15.3' fill='none' stroke='%23000' stroke-opacity='.1' stroke-width='1.5'/%3E%3C/svg%3E">
 <style>
 /* Layout: two-pane studio. Neutral graphite editor (dark default, light option) beside a live A4 sheet. */
 :root{
@@ -280,7 +281,7 @@ textarea.inp{resize:vertical;min-height:62px;line-height:1.45}
 .t-aurora .contacts a{display:inline-flex;align-items:center;gap:5pt}
 .t-aurora .contacts .ic{width:1.1em;height:1.1em}
 .t-aurora .job+.job{margin-top:13pt}
-.t-aurora .job h3{font-size:1.2em;line-height:1.25}
+.t-aurora .job h3{font-size:1.2em;line-height:1.25;color:var(--c-accent)}
 .t-aurora .meta{font-size:.8em;color:var(--c-muted);margin-top:2pt}
 .t-aurora .grp{font-weight:var(--c-wb);margin-top:6pt}
 .t-aurora ul,.t-aurora ol{margin-top:4pt;padding-left:24pt}
@@ -301,7 +302,7 @@ textarea.inp{resize:vertical;min-height:62px;line-height:1.45}
 .t-wide .contacts a{display:inline-flex;align-items:center;gap:5pt}
 .t-wide .contacts .ic{width:1.1em;height:1.1em}
 .t-wide .job+.job{margin-top:13pt}
-.t-wide .job h3{font-size:1.2em;line-height:1.25}
+.t-wide .job h3{font-size:1.2em;line-height:1.25;color:var(--c-accent)}
 .t-wide .meta{font-size:.8em;color:var(--c-muted);margin-top:2pt}
 .t-wide .grp{font-weight:var(--c-wb);margin-top:6pt}
 .t-wide ul,.t-wide ol{margin-top:4pt;padding-left:18pt}
@@ -367,7 +368,6 @@ textarea.inp{resize:vertical;min-height:62px;line-height:1.45}
 .t-spot .skl{display:grid;grid-template-columns:max-content 1fr;gap:3pt 12pt}
 
 /* Glass */
-.t-glass{letter-spacing:-.01em}
 .t-glass .cv-inner{padding:var(--c-pad-y) var(--c-pad-x) 14pt}
 .t-glass .glass{position:relative;border-radius:20pt;background:rgba(255,255,255,calc(var(--c-glass) + .12));border:.8pt solid rgba(255,255,255,.95);outline:.6pt solid rgba(38,48,110,.07)}
 .t-glass.glass-art .glass{background:transparent;outline:none;border:.8pt solid rgba(255,255,255,.7)}
@@ -414,7 +414,7 @@ textarea.inp{resize:vertical;min-height:62px;line-height:1.45}
 .t-ats .x-role{text-align:center;font-size:1.1em;margin-top:2pt}
 .t-ats .x-contact{text-align:center;font-size:.92em;margin-top:5pt}
 .t-ats .x-contact .pp{color:var(--c-muted)}
-.t-ats h2{font-size:1.05em;text-transform:uppercase;letter-spacing:.04em;border-bottom:.9pt solid var(--c-text);padding-bottom:2pt;margin:var(--c-gap) 0 6pt;color:var(--c-accent)}
+.t-ats h2{font-size:1.05em;text-transform:uppercase;letter-spacing:.04em;border-bottom:.9pt solid var(--c-div);padding-bottom:2pt;margin:var(--c-gap) 0 6pt;color:var(--c-accent)}
 .t-ats .job+.job{margin-top:10pt}
 .t-ats .jh{display:flex;justify-content:space-between;gap:12pt}
 .t-ats .jh h3{font-size:1em}
@@ -484,7 +484,7 @@ textarea.inp{resize:vertical;min-height:62px;line-height:1.45}
 .t-details .d-cols{display:grid;grid-template-columns:1fr var(--c-label);gap:30pt}
 .t-details .d-main{min-width:0}
 .t-details .d-side{min-width:0;font-size:.9em;padding-top:4pt}
-.t-details .d-h{display:flex;align-items:center;gap:7pt;font-size:1.42em;line-height:1.2;margin:var(--c-gap) 0 3pt}
+.t-details .d-h{display:flex;align-items:center;gap:7pt;font-size:1.42em;line-height:1.2;margin:var(--c-gap) 0 3pt;color:var(--c-accent)}
 .t-details .d-main>.d-h:first-child{margin-top:0}
 .t-details .d-h .ic{width:.62em;height:.62em;stroke-width:3}
 .t-details .d-sh{font-weight:var(--c-wb);font-size:1.05em;margin:12pt 0 2pt}
@@ -638,6 +638,9 @@ const TEMPLATES={
  details:{name:'Details',note:'Square photo, icon headings and a right-hand Details column.',ats:6,photo:true,sidebar:true,design:TPL({font:'sourcesans',wn:600,wh:600,wb:700,track:0,text:'#1f1f1f',muted:'#a3a3a3',accent:'#1f1f1f',divider:'#e5e5e5',size:9.6,name:23,sum:10,photo:44,photoShape:'rounded',label:132,gap:16,padX:54,padY:34,gradOn:false,grad:GRAD_PRESETS.None})},
  ats:{name:'Simple ATS',note:'Plain single column. Safest for strict parsers.',ats:10,photo:false,design:TPL({font:'arial',wn:700,wh:700,wb:700,track:0,text:'#111111',muted:'#444444',accent:'#111111',divider:'#111111',size:10.2,sum:13,photo:0,photoPos:'none',gap:13,padX:46,padY:40,showIcons:false,gradOn:false,grad:GRAD_PRESETS.None})}
 };
+const USES={
+ colors:{aurora:['text','muted','accent','divider'],wide:['text','muted','accent','divider'],side:['text','muted','accent','divider'],spot:['text','muted','accent','divider'],glass:['text','muted','accent'],classic:['text','muted','accent','divider'],banner:['text','band'],details:['text','muted','accent'],ats:['text','muted','accent','divider']},
+ grad:['aurora','wide','side','spot','glass'],sum:['aurora','wide','side','spot','glass']};
 const TORDER=['aurora','wide','side','spot','glass','classic','banner','details','ats'];
 
 /* section presets (Add section) */
@@ -1051,12 +1054,13 @@ function paneDesign(){
   <span class="hint">San Francisco shows on Apple devices only (Inter elsewhere) and Macs may save it in a format older ATS read poorly; pick Inter for the safest PDF. Calibri uses Carlito where Calibri isn't installed.</span>
   <div class="two">${rng('D.wn','Name weight',d.wn,100,900,100)}${rng('D.wh','Heading weight',d.wh,100,900,100)}${rng('D.wb','Bold text weight',d.wb,100,900,100)}${rng('D.track','Letter spacing',d.track,-.04,.06,.005,'em')}</div>
   <div class="two">${rng('D.size','Body size',d.size,8,12,.1,'pt')}${rng('D.name','Name size',d.name,12,34,.5,'pt')}</div>
-  ${['aurora','wide'].includes(S.template)?rng('D.sum','Summary size',d.sum,9,18,.5,'pt'):''}</div></details>`;
+  ${USES.sum.includes(S.template)?rng('D.sum','Summary size',d.sum,9,18,.5,'pt'):''}</div></details>`;
  h+=`<details class="group" data-k="colors" open><summary>${ui('palette')}Colors<span class="chev">${ui('chevron-right')}</span></summary><div class="gbody"><div class="colors">
-  ${col('D.text','Text',d.text)}${col('D.muted','Secondary text',d.muted)}${col('D.accent',S.template==='classic'?'Links':'Accent',d.accent)}${col('D.divider','Lines',d.divider)}${S.template==='banner'?col('D.band','Title bands',d.band):''}</div>
+  ${(()=>{const u=USES.colors[S.template]||['text','muted','accent','divider'];const L={text:'Text',muted:'Secondary text',accent:S.template==='classic'?'Links':['aurora','wide','details'].includes(S.template)?'Titles':'Accent',divider:'Lines',band:'Title bands'};return u.map(k=>col('D.'+k,L[k],d[k])).join('')})()}</div>
   ${S.template==='glass'?rng('D.glass','Glass opacity',d.glass,.2,.85,.01,''):''}</div></details>`;
  const g=d.grad;
- h+=`<details class="group" data-k="grad" open><summary>${ui('sliders-horizontal')}Background gradient<span class="chev">${ui('chevron-right')}</span></summary><div class="gbody">
+ if(!USES.grad.includes(S.template))h+=`<div class="hint" style="margin:-4px 0 12px">${t.name} uses a plain white page, so it has no background gradient.</div>`;
+ else h+=`<details class="group" data-k="grad" open><summary>${ui('sliders-horizontal')}Background gradient<span class="chev">${ui('chevron-right')}</span></summary><div class="gbody">
   ${sw('D.gradOn','Show gradient',d.gradOn)}
   <div class="grad-preview" style="background:${gradCss(Object.assign({},d,{gradOn:true}))},${g.base}"></div>
   <div class="field"><span>Presets</span><div class="presets">${Object.entries(GRAD_PRESETS).map(([k,v])=>`<button class="preset" title="${k}" aria-label="${k} preset" data-act="preset" data-args='["${k}"]' style="background:${gradCss({gradOn:true,grad:v})},${v.base}"></button>`).join('')}</div></div>
