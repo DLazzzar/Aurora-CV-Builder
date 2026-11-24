@@ -715,10 +715,12 @@ function vars(d){
   `--c-label:${d.label}pt`,`--c-gap:${d.gap}pt`,`--c-pad-x:${d.padX}pt`,`--c-pad-y:${d.padY}pt`,`--c-base:${base}`,`--c-grad:${gradCss(d)}`,`--c-soft:${hexA(d.muted,.14)}`,
   `--c-glass:${d.glass}`,`--c-photo:${d.photo||80}pt`,`--c-pr:${pr}`].join(';');
 }
+// In the PDF the initials are a picture, so parsers don't read "LD" as part of the name
+function iniImg(t,d,sz){if(!t)return '';try{const k=4,px=Math.round(sz*k),c=document.createElement('canvas');c.width=c.height=px;const g=c.getContext('2d');g.fillStyle=d.muted||'#666';g.font=`600 ${Math.round(sz*.32*k)}px ${famCss(d.hfont||d.font)}`;g.textAlign='center';g.textBaseline='middle';g.fillText(t,px/2,px/2+px*.02);return `<img src="${c.toDataURL('image/png')}" alt="">`}catch(_){return ''}}
 function avatar(d,T){
  const p=S.profile.photo,sz=d.photo;
  if(!TEMPLATES[T].photo||!sz||d.photoPos==='none')return '';
- const img=p.src?`<img src="${p.src}" alt="" style="object-position:${p.x}% ${p.y}%;transform:scale(${p.zoom});transform-origin:${p.x}% ${p.y}%">`:`<span class="ini" data-i="${esc(initials(S.profile.name))}" style="font-size:${sz*.32}pt"></span>`;
+ const img=p.src?`<img src="${p.src}" alt="" style="object-position:${p.x}% ${p.y}%;transform:scale(${p.zoom});transform-origin:${p.x}% ${p.y}%">`:d.__bake?iniImg(initials(S.profile.name),d,sz):`<span class="ini" data-i="${esc(initials(S.profile.name))}" style="font-size:${sz*.32}pt"></span>`;
  return `<div class="avatar" style="width:${sz}pt;height:${sz}pt">${img}</div>`;
 }
 function contactHref(c){
@@ -1301,7 +1303,7 @@ const SECT=[
 ];
 // Words allowed around the keyword in a heading ("Key Skills", "Work Experience & Internships")
 const HFILL=/\b(and|i|of|my|key|core|main|other|additional|relevant|selected|professional|personal|technical|work|the|a|digital|computer|soft|hard|it|areas?|area|background|history|spoken|foreign|detail|details|info|information|licen[cs]es|training|radno|stručne|strucne|lične|licne|ostale|i)\b/g;
-const HWORDS=['professional','personal','technical','contact','information','info','details','summary','profile','about','me','objective','statement','work','experience','employment','history','career','education','and','training','certifications','certification','certificates','licenses','skills','tools','core','key','competencies','expertise','languages','language','projects','achievements','awards','volunteering','volunteer','interests','hobbies','references','publications','courses','qualifications','academic','background','additional','other','tech','stack','strengths','activities','overview','introduction','memberships','internships','o','meni','radno','iskustvo','obrazovanje','vestine','jezici','kontakt'];
+const HWORDS=['in','progress','present','current','professional','personal','technical','contact','information','info','details','summary','profile','about','me','objective','statement','work','experience','employment','history','career','education','and','training','certifications','certification','certificates','licenses','skills','tools','core','key','competencies','expertise','languages','language','projects','achievements','awards','volunteering','volunteer','interests','hobbies','references','publications','courses','qualifications','academic','background','additional','other','tech','stack','strengths','activities','overview','introduction','memberships','internships','o','meni','radno','iskustvo','obrazovanje','vestine','jezici','kontakt'];
 function despace(core){
  // "W O R K E X P E R I E N C E" -> "WORK EXPERIENCE" (dictionary split), or the letters joined
  const sqAll=core.replace(/\s+/g,'');if(/[^\p{L}]/u.test(sqAll))return sqAll.split(/([^\p{L}]+)/u).filter(Boolean).map(x=>/\p{L}/u.test(x)?despace(x.split('').join(' ')):' '+x+' ').join('').replace(/\s+/g,' ').trim();
@@ -1331,6 +1333,30 @@ function headInfo(t){
 }
 const lineText=l=>typeof l==='string'?l:l.t;
 
+// Two headings on one row ("EDUCATION      INTERESTS") start two short columns: read the left one first, then the right one
+function sideBySide(PL){
+ for(let i=0;i<PL.length;i++){
+  const a=PL[i],b=PL[i+1];if(!b||a.y==null||Math.abs(a.y-b.y)>2||!headInfo(a.t)||!headInfo(b.t)||b.x<=a.end)continue;
+  const cx=b.x-4;let j=i+2;const L=[],Rt=[];
+  for(;j<PL.length;j++){const l=PL[j];if((l.page||1)!==(a.page||1))break;if(l.x<cx&&l.end>cx+4)break;if(headInfo(l.t)&&l.x<cx&&!L.length&&!Rt.length)break;(l.x<cx?L:Rt).push(l)}
+  PL.splice(i,j-i,a,...L,b,...Rt);i=j-1;
+ }
+}
+// List markers that are drawn as shapes (Chrome, Canva…) are not text: render the page and look for a dot left of each line
+async function markBullets(page,PL){
+ if(!PL.length||PL.some(l=>/^[•●▪◦■►➢✓✔]/.test(l.t)))return;
+ const sc=2,vp=page.getViewport({scale:sc});const c=document.createElement('canvas');c.width=Math.ceil(vp.width);c.height=Math.ceil(vp.height);
+ const g=c.getContext('2d',{willReadFrequently:true});g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);
+ await page.render({canvasContext:g,viewport:vp}).promise;
+ const H=page.getViewport({scale:1}).height;
+ PL.forEach(l=>{if(l.x==null||l.y==null)return;const fh=l.size||9;
+  const x0=l.x-fh*1.6,x1=l.x-fh*.15;if(x0<0)return;
+  if(PL.some(o=>o!==l&&o.page===l.page&&Math.abs(o.y-l.y)<fh*.6&&o.end>x0&&o.x<x1))return; // other text sits there
+  const X0=Math.floor(x0*sc),X1=Math.ceil(x1*sc),Y0=Math.floor((H-l.y-fh*.85)*sc),Y1=Math.ceil((H-l.y+fh*.1)*sc);
+  if(Y0<0||X1<=X0)return;const d=g.getImageData(X0,Y0,X1-X0,Y1-Y0).data;let n=0,mx=1e9,Mx=-1,my=1e9,My=-1;
+  for(let y=0;y<Y1-Y0;y++)for(let x=0;x<X1-X0;x++){const i=(y*(X1-X0)+x)*4;const v=d[i]*.3+d[i+1]*.59+d[i+2]*.11;if(v<150){n++;mx=Math.min(mx,x);Mx=Math.max(Mx,x);my=Math.min(my,y);My=Math.max(My,y)}}
+  const w=Mx-mx+1,h=My-my+1;if(n>=3&&w<=fh*.7*sc&&h<=fh*.7*sc)l.bul=true});
+}
 /* ---------- PDF: text lines with size/bold, in reading order (handles two-column layouts) ---------- */
 async function pdfLines(buf){
  if(!window.pdfjsLib){
@@ -1355,7 +1381,7 @@ async function pdfLines(buf){
      const its=sg.its;const spaced=its.length>=4&&its.filter(i=>i.s.trim().length<=2).length>=its.length*.7;
      let lim=Math.max(.5,fh*.06);if(spaced){const g=its.slice(1).map(i=>i.gap).sort((a,b)=>a-b);lim=g[g.length>>1]+fh*.12}
      let t='';its.forEach((i,k)=>{if(k&&i.gap>lim&&!t.endsWith(' ')&&!i.s.startsWith(' '))t+=' ';t+=i.s});
-     t=t.replace(/\s+/g,' ').trim();if(t)L.push({t,size:Math.round(sg.size*10)/10,bold:sg.bold,page:p,x:sg.x})})});return L};
+     t=t.replace(/\s+/g,' ').trim();if(t)L.push({t,size:Math.round(sg.size*10)/10,bold:sg.bold,page:p,x:sg.x,end:sg.end,y:r.y})})});return L};
   // Look for a vertical gutter that splits the body into two real columns of text
   let split=null;
   if(items.length>=20){
@@ -1368,18 +1394,22 @@ async function pdfLines(buf){
     const sc=Math.min(lr,rr)*1000+gap;if(!split||sc>split.sc)split={sc,cx,yCut}
    }
   }
+  const PL=[];
   if(split){
    const top=items.filter(i=>i.y>=split.yCut-1),body=items.filter(i=>i.y<split.yCut-1);
    const left=linesOf(rowsOf(body.filter(i=>i.x+i.w/2<split.cx))),right=linesOf(rowsOf(body.filter(i=>i.x+i.w/2>=split.cx)));
    // A narrow column made of headings/dates is a label column (Europass, Aurora): keep rows together instead
    const DT=/^((\d{1,2}[\/.])?\d{4}|[a-z]{3,9}\.? \d{4})\s*([-–—]|to)?\s*((\d{1,2}[\/.])?\d{4}|[a-z]{3,9}\.? \d{4}|present|current|now|danas|sada)?$/i;
    const labelish=left.filter(l=>headInfo(l.t)||DT.test(l.t)||/^(mother tongue|other language|job applied|personal information|position)/i.test(l.t)).length;
-   if(labelish>=left.length*.6){out.push(...linesOf(rowsOf(items)));continue}
+   if(labelish>=left.length*.6)PL.push(...linesOf(rowsOf(items)));else{
    const pre=c=>{const k=c.findIndex(l=>headInfo(l.t));return k<0?c.length:k};
    const lp=pre(left),rp=pre(right);
    const vol=c=>c.reduce((a,l)=>a+l.t.length,0);const [A,ap,B,bp]=vol(right.slice(rp))>vol(left.slice(lp))?[right,rp,left,lp]:[left,lp,right,rp]; // main (longer) column first
-   out.push(...linesOf(rowsOf(top)),...A.slice(0,ap),...B.slice(0,bp),...A.slice(ap),...B.slice(bp));
-  }else out.push(...linesOf(rowsOf(items)));
+   PL.push(...linesOf(rowsOf(top)),...A.slice(0,ap),...B.slice(0,bp),...A.slice(ap),...B.slice(bp))}
+  }else PL.push(...linesOf(rowsOf(items)));
+  sideBySide(PL);
+  try{await markBullets(page,PL)}catch(_){}
+  out.push(...PL);
  }
  return out;
 }
@@ -1450,17 +1480,57 @@ async function importFile(f){
  }catch(err){console.error(err);toast(err&&err.message==='load'?'The import tools could not load. Check your internet connection and try again.':'This file could not be read. Try exporting it as PDF or DOCX again.')}
 }
 
-const MON='(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec|januar|februar|mart|maj|avgust|septembar|oktobar|novembar|decembar)[a-z]*\\.?';
-const DPART=`(?:${MON}\\s+\\d{4}|\\d{1,2}[\\/.]\\d{4}|\\d{4}[\\/.-]\\d{1,2}|\\d{4})`;
+const MON='\\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec|januar|februar|mart|maj|avgust|septembar|oktobar|novembar|decembar)[a-z]*\\.?';
+const DPART=`(?:${MON}\\s*\\d{4}|\\d{1,2}[\\/.]\\d{4}|\\d{4}[\\/.-]\\d{1,2}|\\d{4})`;
 const DEND=`(?:${DPART}|present|current|now|today|ongoing|danas|sada|trenutno|sada[šs]nje|u toku)`;
 const DATE=new RegExp(`(${DPART})\\s*(?:[-–—]+|to|until|do)\\s*(${DEND})\\.?`,'i');
 const DATE1=new RegExp(`^(?:since|from|od)\\s+(${DPART})$`,'i');
 
+const joinTxt=(a,b)=>/[^\s][-‐]$/.test(a)&&/^\p{Ll}/u.test(b)?a+b:a+' '+b;
+const DONLY=new RegExp(`^(${DPART})\\s*(?:[-–—]+|to)\\s*(${DEND})$`,'i');
+// Join lines that are one wrapped sentence, using where each line starts and ends on the page (PDF only)
+function flowJoin(L,ALL){
+ const geo=L.some(l=>l.end!=null);if(!geo)return L;ALL=ALL||L;
+ const isB=t=>/^[•●▪◦\-–*·➢►■□✓✔]/.test(t);const isD=t=>DONLY.test(t.trim())||DATE.test(t)&&t.replace(DATE,'').replace(/[|,·()\s]/g,'').length<3;
+ // the text column's edges on each page: every line of the document that starts inside this block's column
+ const right={},left={};const xs=L.filter(l=>l.x!=null).map(l=>l.x);const x0=Math.min(...xs)-6,x1=Math.max(...xs)+6;
+ L.forEach(l=>{if(l.x==null)return;const k=l.page||1;right[k]=Math.max(right[k]||0,l.end||0);left[k]=Math.min(left[k]??1e9,l.x)});
+ // usual distance between two lines of the same paragraph; a bigger step means a new bullet
+ const steps=[];for(let i=1;i<L.length;i++){const a=L[i-1],b=L[i];if(a.y!=null&&b.y!=null&&(a.page||1)===(b.page||1)&&a.y>b.y)steps.push(Math.round((a.y-b.y)*4)/4)}
+ steps.sort((a,b)=>a-b);const step=steps.length>=4?steps[Math.floor(steps.length*.25)]:null;const spaced=step!=null&&steps.some(v=>v>step+.6&&v<step*1.6);
+ L=L.map(l=>l.bul&&L.some(o=>o!==l&&(o.page||1)===(l.page||1)&&o.y!=null&&Math.abs(o.y-l.y)<2&&isD(o.t))?Object.assign({},l,{bul:false}):l); // a marker beside a dated title is decoration
+ const hasBul=L.some(l=>l.bul);
+ const out=[];
+ for(let i=0;i<L.length;i++){
+  const B=L[i];let A=null,ai=-1;
+  if(B.bul){out.push(Object.assign({},B));continue}
+  for(let k=out.length-1;k>=0&&k>=out.length-2;k--){if(!isD(out[k].t)){A=out[k];ai=k;break}}
+  if(A&&hasBul&&A.bul&&ai===out.length-1&&Math.abs((B.x||0)-(A.x||0))<4&&!isD(B.t)&&!(DATE.test(B.t)&&B.t.replace(DATE,'').length<50)&&(A.page||1)===(B.page||1)){A.t=joinTxt(A.t,B.t);A.end=B.end;continue} // the next line of a marked bullet
+  const glue=A&&(/^[\p{Ll}&→(,]/u.test(B.t)||/[-‐→&,]$/.test(A.t)||/→/.test(A.t)&&/^[^.]{0,40}→/.test(B.t));
+  const boldStart=!glue&&[...IMPORT_BOLD].some(x=>x.length>=3&&x.length<42&&B.t.startsWith(x+' ')&&/^[\p{Lu}\d]/u.test(B.t.slice(x.length+1))); // "API & Data Postman…": a new labelled row
+  if(A&&!isB(B.t)&&!isD(B.t)&&!isD(A.t)&&(glue||!(DATE.test(B.t)&&B.t.replace(DATE,'').length<50))&&!/^\p{Lu}[^:]{1,39}:\s/u.test(B.t)&&!boldStart&&B.end!=null&&A.end!=null&&(A.page||1)===(B.page||1)&&(Math.abs((B.x||0)-(A.x||0))<4||isB(A.t)&&B.x>A.x&&B.x-A.x<22)&&!(B.bold&&!A.bold)&&!/:$/.test(A.t)){
+   const k=A.page||1,tol=Math.max(25,((right[k]||0)-(left[k]||0))*.1);
+   const D=ai<out.length-1?out[out.length-1]:null; // a date that sat at the end of A's row
+   // A was wrapped if B's first word would not have fitted at the end of A's line
+   const cw=(A.end-A.x)/Math.max(1,A.t.length),fw=(B.t.split(' ')[0]||'').length;
+   // …and a capitalised word after a finished phrase usually starts a new bullet ("…Manager" / "Supported …")
+   const gap=A.y!=null&&B.y!=null?A.y-B.y:null;
+   if(spaced&&gap!=null&&gap>step+.6&&!/^[\p{Ll}&→(,]/u.test(B.t)){out.push(Object.assign({},B));continue}
+   const capNew=!(spaced&&gap!=null&&gap<=step+.3)&&/^\p{Lu}\p{Ll}/u.test(B.t)&&!/\b(the|of|and|a|an|to|for|with|in|on|at|by|from|as|or|i|u|na|za|od|sa)$/i.test(A.t);
+   const full=(A.t.length>=28&&!capNew&&A.end+cw*(fw*1.25+1)>right[k]+1||D&&D.x!=null&&D.x-A.end<45)&&!(A.bold&&!B.bold)&&!(/[.!?]$/.test(A.t)&&/^\p{Lu}/u.test(B.t));const glued=/^[\p{Ll}&→(,]/u.test(B.t)||/[-‐→&,]$/.test(A.t);
+   if(full||glued){A.t=joinTxt(A.t,B.t);A.end=B.end;continue}
+  }
+  out.push(Object.assign({},B));
+ }
+ return out.map(l=>l.bul&&!isB(l.t)?Object.assign(l,{t:'• '+l.t}):l);
+}
 function parseCV(raw){
  const L0=raw.map(l=>typeof l==='string'?{t:l}:Object.assign({},l));
  // clean text; letter-spaced lines ("P R O F I L E") become words
  const lines=[];
  L0.forEach(o=>{let t=String(o.t||'').replace(/ /g,' ').replace(/\t+/g,' | ').replace(/[ ]+/g,' ').trim();if(!t)return;if(isSpacedText(t)){const h=headInfo(t);t=h?h.label:(()=>{const j=despace(t);return j.includes(' ')?j:t.replace(/\s+/g,'')})()}o.t=t;o.caps=/\p{L}{2}/u.test(t)&&t===t.toUpperCase();lines.push(o)});
+ for(let i=0;i<lines.length;i++){const a=lines[i];const fm=a.t.match(new RegExp(`^(${DPART})\\s*([-–—]|to)$`,'i'));if(!fm)continue;
+  for(let k=i+1;k<Math.min(lines.length,i+4);k++){const b=lines[k];if(new RegExp(`^${DEND}$`,'i').test(b.t)&&(a.end==null||Math.abs((b.end||0)-a.end)<30||Math.abs((b.x||0)-(a.x||0))<30)){a.t=fm[1]+' – '+b.t;lines.splice(k,1);break}}}
  const full=lines.map(l=>l.t).join('\n');
  const d={version:1,template:'aurora',profile:{name:'',title:'',summary:'',photo:{src:IMPORT_PHOTO||'',zoom:1,x:50,y:40},contactLabel:'Contact & Info',contactIcon:'user'},contacts:[],sections:[],designs:{}};
 
@@ -1502,7 +1572,7 @@ function parseCV(raw){
   if(drop.has(i))return;let t=l.t;
   const dl=t.match(/^(driving licen[cs]e|driver'?s licen[cs]e|voza[čc]ka dozvola)\s*:?\s*(.{1,40})$/i);if(dl){drives.push([titleCase(dl[1]),dl[2]]);return}
   let h=isHead.get(i);
-  if(h&&cur&&cur.type===h.type&&(h.type==='skills'||h.type==='languages')&&!h.exact&&!lines[i].hd)h=null; // a sub-label ("Digital skills") inside its own section
+  if(h&&cur&&cur.type===h.type&&(h.type==='skills'||h.type==='languages')&&(!h.exact||cur.sig&&sig(l)!==cur.sig)&&!lines[i].hd)h=null; // a sub-label ("Digital skills") inside its own section
   if(h&&cur&&cur.type==='experience'&&/:$/.test(t)&&!h.exact)h=null; // "Project Atlas:" inside a job
   if(!h){ // "Skills: AWS, Docker" or a heading glued to its first line
    const m=t.match(/^([^:]{2,32}):\s+(.+)$/);const hi=m&&headInfo(m[1]);
@@ -1510,7 +1580,7 @@ function parseCV(raw){
    else{const w=t.split(' ');for(let n=Math.min(4,w.length-1);n>=1;n--){const p=w.slice(0,n).join(' '),r=w.slice(n).join(' ');const hp=headInfo(p);if(hp&&hp.exact&&/^[\p{Lu}\d+]/u.test(r)&&r.length>2&&!/^\S*[.:]/.test(r)&&!isHead.has(i)&&(!cur||cur.type!==hp.type)&&!(cur&&cur.type==='experience'&&hp.type==='list')&&!/^projects?$/i.test(p)&&!isContactLine(p)){h=hp;t=r;break}}if(!h)t=l.t}
    if(h){cur={type:h.type,label:titleCase(h.label.replace(/[:\s]+$/,'')),lines:[]};blocks.push(cur);cur.lines.push(Object.assign({},l,{t}));return}
   }
-  if(h){cur={type:h.type,label:titleCase(h.label.replace(/^[^\p{L}]+/u,'').replace(/[:\s]+$/,'')),lines:[]};blocks.push(cur);return}
+  if(h){cur={type:h.type,label:titleCase(h.label.replace(/^[^\p{L}]+/u,'').replace(/[:\s]+$/,'')),lines:[],sig:sig(l)};blocks.push(cur);return}
   (cur?cur.lines:header).push(l);
  });
  const T=a=>a.map(l=>l.t);
@@ -1537,39 +1607,40 @@ function parseCV(raw){
 
  /* --- summary from the header --- */
  const hdr=T(header).filter(t=>!isContactLine(t)&&!(locLine&&t.includes(locLine))&&!/^(curriculum vitae|resume|résumé|cv)$/i.test(t));
- if(hdr.length)d.profile.summary=hdr.join(' ');
+ if(hdr.length)d.profile.summary=flowJoin(header.filter(l=>hdr.includes(l.t)),lines).map(l=>l.t.replace(/^•\s*/,'')).reduce(joinTxt);
 
  const isBullet=l=>/^[•●▪◦\-–*·➢►■□✓✔]\s*/.test(l);const strip=l=>l.replace(/^[•●▪◦\-–*·➢►■□✓✔]\s*/,'');
- const tidyDate=s=>titleCase(s.replace(/\s*[-–—]+\s*/,' – '));
+ const tidyDate=s=>fixDate(titleCase(s.replace(/\s*[-–—]+\s*/,' – ')));
  blocks.forEach(b=>{
   if(b.type==='contact')return;
   let type=b.type;
   if(type==='list'&&/volunteer|volontir/i.test(b.label)&&b.lines.some(l=>DATE.test(l.t)))type='experience';
   const DEFAULT_ICONS={experience:'briefcase',skills:'wrench',education:'graduation-cap',languages:'languages',text:'user',list:'star'};
   const sec={id:uid(),type:type==='summary'?'text':type,label:b.label,icon:DEFAULT_ICONS[type==='summary'?'text':type]||'star',show:true,side:['skills','languages','education'].includes(type),items:[],body:''};
-  const BL=T(b.lines);
+  b.lines=flowJoin(b.lines,lines);const BL=T(b.lines);
   if(type==='summary'){const L=BL.filter(l=>!isContactLine(l));if(!d.profile.title&&L.length>1&&L[0].length<70&&!/[.!?]$/.test(L[0])&&!/^[\p{Ll}]/u.test(L[1]||''))d.profile.title=L.shift();
-   if(!d.profile.summaryLabel){d.profile.summary=L.join(' ');d.profile.summaryLabel=b.label;return}
+   if(!d.profile.summaryLabel){d.profile.summary=L.length?L.reduce(joinTxt):'';d.profile.summaryLabel=b.label;return}
    sec.body=L.join(' ')}
-  else if(type==='experience')parseJobs(BL,sec);
+  else if(type==='experience')parseJobs(b.lines,sec);
   else if(type==='skills'){
    const L2=BL.map(strip).filter(Boolean);const merged=[];
    for(let k=0;k<L2.length;k++){const t=L2[k],n=L2[k+1];if(n&&((!/[:,]/.test(t)&&t.length<36&&/[,·]/.test(n)&&!/^[\p{Ll}]/u.test(n))||(/:$/.test(t)&&t.length<40))&&!/^[^:]{2,40}:/.test(n)){merged.push(t.replace(/:$/,'')+': '+n);k++}else merged.push(t)}
    const BOLDL=[...IMPORT_BOLD].filter(x=>x.length<42&&!/[,.]$/.test(x));
    merged.forEach(t=>{let m=t.match(/^([^:]{2,40}):\s*(.+)$/);if(!m){const bl=BOLDL.find(x=>t.startsWith(x+' ')&&t.length>x.length+3);if(bl)m=[t,bl,t.slice(bl.length+1)]}
-    if(!m&&sec.items.length&&sec.items.at(-1).label){sec.items.at(-1).value+=' '+t;return}if(m)sec.items.push({id:uid(),label:m[1].trim(),value:m[2].trim()});else if(sec.items.length&&/^[\p{Ll}(]/u.test(t))sec.items.at(-1).value+=' '+t;else sec.items.push({id:uid(),label:'',value:t})});
+    if(!m&&sec.items.length&&sec.items.at(-1).label){sec.items.at(-1).value=joinTxt(sec.items.at(-1).value,t);return}if(m)sec.items.push({id:uid(),label:m[1].trim(),value:m[2].trim()});else if(sec.items.length&&/^[\p{Ll}(]/u.test(t))sec.items.at(-1).value+=' '+t;else sec.items.push({id:uid(),label:'',value:t})});
    const plain=sec.items.filter(r=>!r.label);if(plain.length>=3&&plain.length===sec.items.length&&plain.every(r=>r.value.length<32&&!/[,·]/.test(r.value)))sec.items=[{id:uid(),label:'',value:plain.map(r=>r.value).join(', ')}];
   }
   else if(type==='education'){
    let pend='';const INST=/\b(universit|college|school|institut|academy|akademij|fakultet|faculty|gimnazij|[šs]kola|polytechnic|politehni)/i;
-   const EL=[];BL.forEach(l=>{if(EL.length&&/^[\p{Ll}(]/u.test(l)&&!isBullet(l))EL[EL.length-1]+=' '+l;else EL.push(l)});
+   const EL=[];BL.forEach(l=>{if(EL.length&&/^[\p{Ll}(]/u.test(l)&&!isBullet(l)&&!/^(in[- ]progress|u toku|ongoing)$/i.test(l))EL[EL.length-1]=joinTxt(EL[EL.length-1],l);else EL.push(l)});
    EL.forEach(l=>{const t=strip(l).replace(/^\|\s*|\s*\|$/g,'');
     const only=t.match(new RegExp(`^(${DPART}(?:\\s*(?:[-–—]+|to)\\s*${DEND})?)$`,'i'));
+    if(/^(in[- ]progress|u toku|ongoing|currently studying)$/i.test(t)&&sec.items.length){sec.items.at(-1).note='in progress';return}
     if(only){const last=sec.items.at(-1);if(last&&!last.dates)last.dates=tidyDate(only[1]);else pend=tidyDate(only[1]);return}
     const lead=t.match(new RegExp(`^(${DPART}\\s*(?:[-–—]+|to)\\s*${DEND}|${DPART})\\s*[|,:]?\\s+(.+)$`,'i'));
     const m=lead?null:t.match(new RegExp(`[\\s|,(–-]*(${DPART}\\s*(?:[-–—]+|to)\\s*${DEND}|${DPART})\\)?\\s*$`,'i'));
     let title=lead?lead[2]:(m?t.slice(0,m.index):t);let dates=lead?tidyDate(lead[1]):(m?tidyDate(m[1]):'');
-    title=title.replace(/[\s|,–-]+$/,'');
+    title=title.replace(/[\s|,–·•-]+$/,'');
     const last=sec.items.at(-1);
     if(last&&!last.note&&!dates&&INST.test(title)&&!INST.test(last.title)&&title.length<90){last.note=title;return}
     const ip=title.match(/\s*[-–(]?\s*(in[- ]progress|u toku)\)?\s*$/i);
@@ -1595,7 +1666,8 @@ function parseCV(raw){
  return d;
 }
 
-function parseJobs(lines,sec){
+function parseJobs(objs,sec){
+ const lines=objs.map(o=>typeof o==='string'?o:o.t);const geo=objs.some(o=>o&&o.end!=null);const boldAt=i=>!!(objs[i]&&objs[i].bold);
  const isBullet=l=>/^[•●▪◦\-–*·➢►■□✓✔]\s*/.test(l);const strip=l=>l.replace(/^[•●▪◦\-–*·➢►■□✓✔]\s*/,'');
  const SEP=/\s+[-–—|@·•]\s+|\s+at\s+|\s*[|·•]\s*|,\s+/;
  const dateOf=l=>{const m=l.match(DATE);if(m)return {m,s:m[1],e:m[2]};const o=l.trim().match(DATE1);return o?{m:o,s:o[1],e:'Present'}:null};
@@ -1604,47 +1676,54 @@ function parseJobs(lines,sec){
  const firstDate=lines.findIndex(isHeadLine);
  const dateFirst=firstDate===0||(firstDate>0&&lines[firstDate].trim().indexOf(dateOf(lines[firstDate]).m[0])===0&&lines.slice(0,firstDate).every(isBullet));
  let job=null,grp=null,need=0;const pending=[];
- const setHead=(head,job)=>{const p=head.split(SEP).map(x=>x.trim()).filter(Boolean);job.role=p[0]||'';if(p.length>1){job.company=p[1];if(p.length>2&&!job.location)job.location=p.slice(2).join(', ')}};
+ const ROLEW=/\b(engineer|developer|manager|lead|analyst|designer|specialist|consultant|tester|director|intern|internship|architect|administrator|officer|coordinator|head|programmer|scientist|assistant|associate|technician|representative|executive|accountant|nurse|teacher|founder|owner|qa|sdet|devops|cto|ceo|inženjer|programer|menadžer|direktor|tehničar|saradnik|referent|knjigovođa|računovođa)\b/i;
+ const setHead=(head,job)=>{const p=head.split(SEP).map(x=>x.trim()).filter(Boolean);if(p.length>1&&!ROLEW.test(p[0])&&ROLEW.test(p[1]))[p[0],p[1]]=[p[1],p[0]];job.role=p[0]||'';if(p.length>1){job.company=p[1];if(p.length>2&&!job.location)job.location=p.slice(2).join(', ')}};
  lines.forEach((l,ix)=>{
   if(isHeadLine(l)){
-   const dm=dateOf(l);const at=l.indexOf(dm.m[0]);const before=l.slice(0,at).replace(/[\s|·,(–-]+$/,'').trim();
+   const dm=dateOf(l);
+   if(!dateFirst&&job&&!pending.length&&!l.slice(0,l.indexOf(dm.m[0])).replace(/[\s|·,(–-]+$/,'').trim()&&!l.slice(l.indexOf(dm.m[0])+dm.m[0].length).replace(/^[\s|,·)]+/,'').trim()){ // a date on its own under a job: it belongs to the line above
+    const g=grp||job.groups.at(-1);const tx=`(${titleCase(dm.s)} – ${titleCase(dm.e)})`;if(g&&g.bullets){const b=g.bullets.split('\n');b[b.length-1]+=' '+tx;g.bullets=b.join('\n')}else if(g&&g.name)g.name+=' '+tx;return}const at=l.indexOf(dm.m[0]);const before=l.slice(0,at).replace(/[\s|·,(–-]+$/,'').trim();
    const tail=l.slice(at+dm.m[0].length).replace(/^[\s|,·)]+/,'').trim();
    const prevJob=sec.items.at(-1);const pall=dateFirst?[]:pending.splice(0);const prev=pall.filter(x=>!isBullet(x));const back=pall.filter(isBullet);
-   job={id:uid(),role:'',company:'',location:'',start:titleCase(dm.s),end:titleCase(dm.e),groups:[]};sec.items.push(job);grp=null;need=0;
+   job={id:uid(),role:'',company:'',location:'',start:fixDate(titleCase(dm.s)),end:fixDate(titleCase(dm.e)),groups:[]};sec.items.push(job);grp=null;need=0;
    let lc='';const LOC=/^[\p{Lu}][\p{L}.-]+(?:\s[\p{Lu}][\p{L}.-]+)?(?:,\s*[\p{Lu}][\p{L}.-]+(?:\s[\p{Lu}][\p{L}.-]+)?)+$/u;
    const li=prev.findIndex(x=>LOC.test(x));if(li>=0&&prev.length>1)lc=prev.splice(li,1)[0];
    if(before&&prev.length&&!SEP.test(before)){job.role=prev.pop();job.company=before}
    else if(before){setHead(before,job);if(!job.company&&prev.length)job.company=prev.join(' ')}
    else if(prev.length){const h=prev.pop();setHead(h,job);if(!job.company&&prev.length){job.company=prev.shift();if(prev.length&&!job.location)job.location=prev.splice(0).join(', ')}}
    if(prev.length>0&&!(prev.length===1&&!job.company&&(job.company=prev.pop())))back.unshift(...prev.splice(0));
+   if(!job.company&&prevJob&&prevJob.company&&!before&&!back.length&&!prevJob.groups.some(g=>g.bullets))job.company=prevJob.company;
    if(back.length){const tj=prevJob||job;let g=tj.groups.at(-1);if(!g){g={id:uid(),name:'',bullets:''};tj.groups.push(g)}g.bullets+=(g.bullets?'\n':'')+back.map(strip).join('\n')}
    if(!job.role&&tail&&dateFirst){setHead(tail,job);need=job.company?0:2}
-   else{job.location=tail||lc;if(!job.role)need=1}
+   else{job.location=tail||lc||job.location;if(!job.role)need=1}
    return;
   }
   if(job&&need&&!isBullet(l)&&l.length<80){if(need===1){setHead(l,job);need=job.company?0:2;return}if(need===2){need=0;if(l.length<60&&!/[.!?]$/.test(l)){const p=l.split(/,\s+/);job.company=p[0];if(p[1]&&!job.location)job.location=p.slice(1).join(', ');return}}}
   need=0;
-  if(!dateFirst&&job&&!isBullet(l)&&l.length<70&&!/[.!?;]$/.test(l)){const short=x=>x&&!isBullet(x)&&x.length<60&&!/[.!?;]$/.test(x)&&!isHeadLine(x);
+  if(!dateFirst&&job&&!isBullet(l)&&l.length<70&&!/[.!?;]$/.test(l)&&!/→/.test(l)){const short=x=>x&&!isBullet(x)&&x.length<60&&!/[.!?;]$/.test(x)&&!isHeadLine(x);
    for(let q=1;q<=3;q++){const nx=lines[ix+q];if(nx&&isHeadLine(nx)){pending.push(l);return}if(!short(nx))break}}
   if(!job){pending.push(l);return}
   if(isBullet(l)){if(!grp){grp={id:uid(),name:'',bullets:''};job.groups.push(grp)}grp.bullets+=(grp.bullets?'\n':'')+strip(l);return}
-  if(/:$/.test(l)&&l.length<60){grp={id:uid(),name:l,bullets:''};job.groups.push(grp);return}
+  if(/:$/.test(l)&&l.length<60||geo&&boldAt(ix)&&l.length<90&&!/[.!?;]$/.test(l)&&lines[ix+1]&&!isHeadLine(lines[ix+1])){grp={id:uid(),name:l,bullets:''};job.groups.push(grp);return}
   if(!job.groups.length&&!job.company&&l.length<60&&!/[.!?]$/.test(l)){const p=l.split(/\s*[|·•]\s*|\s+[-–—]\s+/);job.company=p[0];if(p[1]&&!job.location)job.location=p.slice(1).join(', ');return}
   if(!job.groups.length&&!job.location&&/^[\p{L} ,.-]+$/u.test(l)&&l.length<40&&/,/.test(l)){job.location=l;return}
-  if(grp&&grp.bullets){const last=grp.bullets.split('\n').pop();if(/^[\p{Ll}(]/u.test(l)||!/[.!?;]$/.test(last)&&last.length>45){grp.bullets+=' '+l;return}}
+  if(!geo&&grp&&grp.bullets){const last=grp.bullets.split('\n').pop();if(/^[\p{Ll}(]/u.test(l)||!/[.!?;]$/.test(last)&&last.length>45){grp.bullets=grp.bullets.replace(/[^\n]*$/,x=>joinTxt(x,l));return}}
   if(!grp){grp={id:uid(),name:'',bullets:''};job.groups.push(grp)}
   grp.bullets+=(grp.bullets?'\n':'')+l;
  });
  if(!sec.items.length&&pending.length){const job={id:uid(),role:'',company:'',location:'',start:'',end:'',groups:[{id:uid(),name:'',bullets:pending.map(strip).join('\n')}]};sec.items.push(job)}
  sec.items.forEach(j=>{if(!j.groups.length)j.groups.push({id:uid(),name:'',bullets:''})});
 }
+const fixDate=s=>String(s||'').replace(/(\p{L})(\d{4})/gu,'$1 $2');
 function titleCase(s){return s&&s===s.toUpperCase()&&/\p{Lu}/u.test(s)?s.toLowerCase().replace(/(^|[\s'(\/-])(\p{L})/gu,(m,a,b)=>a+b.toUpperCase()).replace(/\b(And|Of|The|In|At|For|I)\b(?!$)/g,w=>w.toLowerCase()).replace(/^(\p{Ll})/u,c=>c.toUpperCase()):s}
 
 function applyBold(){
- const P=[...IMPORT_BOLD].filter(p=>p.length>=2&&p.length<120).sort((a,b)=>b.length-a.length);if(!P.length)return;
- const rx=new RegExp('('+P.map(p=>p.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','g');
+ // phrases that were bold only because they were a title, label or heading are not bolded inside body text
+ const ex=new Set();S.sections.forEach(s=>{ex.add(s.label);(s.items||[]).forEach(it=>{[it.role,it.company,it.label,it.title].forEach(v=>v&&ex.add(String(v).replace(/<[^>]+>/g,'').trim()));(it.groups||[]).forEach(g=>g.name&&ex.add(g.name.replace(/:$/,'')))})});
+ const P=[...IMPORT_BOLD].filter(p=>p.length>=2&&p.length<120&&!ex.has(p)).sort((a,b)=>b.length-a.length);if(!P.length)return;
+ const rx=new RegExp('(?<![\\p{L}\\p{N}])('+P.map(p=>p.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')(?![\\p{L}\\p{N}])','gu');
  const fix=h=>{if(!h)return h;const d=document.createElement('div');d.innerHTML=h;const w=document.createTreeWalker(d,NodeFilter.SHOW_TEXT);const nodes=[];while(w.nextNode())nodes.push(w.currentNode);
-  nodes.forEach(n=>{if(n.parentElement.closest('b'))return;const t=n.nodeValue;if(!rx.test(t))return;rx.lastIndex=0;const span=document.createElement('span');span.innerHTML=esc(t).replace(new RegExp(rx.source.replace(/&/g,'&amp;'),'g'),'<b>$1</b>');n.replaceWith(...span.childNodes)});return d.innerHTML};
+  nodes.forEach(n=>{if(n.parentElement.closest('b'))return;const t=n.nodeValue;if(!rx.test(t))return;rx.lastIndex=0;const span=document.createElement('span');span.innerHTML=esc(t).replace(new RegExp(rx.source.replace(/&/g,'&amp;'),'gu'),'<b>$1</b>');n.replaceWith(...span.childNodes)});return d.innerHTML};
  S.profile.summary=fix(S.profile.summary);
  S.sections.forEach(s=>{if(s.type==='experience')s.items.forEach(it=>it.groups.forEach(g=>g.html=fix(g.html)));if(s.type==='skills')s.items.forEach(r=>r.value=fix(r.value));if(s.type==='text')s.body=fix(s.body)});
 }
